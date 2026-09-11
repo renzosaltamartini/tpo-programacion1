@@ -1,136 +1,223 @@
 def validar_estado(estado):
 
-    """
+    estado = estado.strip().upper()
 
-    recibe como parametro el estado que se quiero ingresar y verifica que sea valido
-
-    devuelve flag
-
-    """
-
-    estado = estado.upper()
-
-    while estado != "P" and estado != "A" and estado != "T" and estado != "J":
-
+    while estado not in ["P", "A", "T", "J"]:
         print("Estado incorrecto.")
-        estado = input("Ingrese P, A, T o J: ").upper()
+        estado = input("Ingrese P, A, T o J: ").strip().upper()
 
     return estado
 
 
+def validar_si_no(respuesta):
+
+    respuesta = respuesta.strip().upper()
+
+    while respuesta not in ["S", "N"]:
+        print("Opción inválida.")
+        respuesta = input("Ingrese S o N: ").strip().upper()
+
+    return respuesta
+
+
 def seleccionar_sesion(matriz_sesiones):
+   
 
-    if len(matriz_sesiones) > 0:
-
-        for i in range(len(matriz_sesiones)):
-            print(matriz_sesiones[i])
-
-        numero = input("¿Qué número de sesión desea seleccionar?: ")
-
-        while not numero.isdigit() or int(numero) < 1 or int(numero) > len(matriz_sesiones):
-            print("Sesión inválida.")
-            numero = input("Ingrese número de sesión: ")
-
-        numero = int(numero)
-
-        posicion = numero - 1
-
-        return posicion
-
-    else:
+    if len(matriz_sesiones) == 0:
         print("No hay sesiones registradas.")
         return None
 
+    print("\nSesiones disponibles:")
+
+    for sesion in matriz_sesiones:
+        print(
+            f"{sesion[0]} - {sesion[1]} - "
+            f"{sesion[2]} - {sesion[3]}"
+        )
+
+    print("0 - Volver")
+
+    numero = input(
+        "¿Qué número de sesión desea seleccionar?: "
+    ).strip()
+
+    while (
+        not numero.isdigit()
+        or int(numero) < 0
+        or int(numero) > len(matriz_sesiones)
+    ):
+        print("Sesión inválida.")
+        numero = input(
+            "Ingrese número de sesión o 0 para volver: "
+        ).strip()
+
+    if numero == "0":
+        return None
+
+    return int(numero) - 1
+
 
 def sesion_ya_registrada(matriz_asistencias, posicion_sesion):
+    
 
-    for i in range(len(matriz_asistencias)):
+    for fila in matriz_asistencias:
 
-        if matriz_asistencias[i][posicion_sesion] != "":
+        if fila[posicion_sesion] != "":
             return True
 
     return False
 
 
-def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def hay_estudiantes_activos(matriz_estudiantes):
+    
+
+    for estudiante in matriz_estudiantes:
+
+        if estudiante[3] == "Activo":
+            return True
+
+    return False
+
+
+def buscar_posicion_estudiante(matriz_estudiantes, legajo):
+    
+
+    for i in range(len(matriz_estudiantes)):
+
+        if matriz_estudiantes[i][0] == legajo:
+            return i
+
+    return -1
+
+
+def registrar_asistencia(matriz_estudiantes,matriz_sesiones,matriz_asistencias):
+   
+
+    if not hay_estudiantes_activos(matriz_estudiantes):
+        print("No hay estudiantes activos para registrar asistencia.")
+        return
 
     posicion_sesion = seleccionar_sesion(matriz_sesiones)
 
     if posicion_sesion == None:
         return
 
-    if sesion_ya_registrada(matriz_asistencias, posicion_sesion):
+    if sesion_ya_registrada(
+        matriz_asistencias,
+        posicion_sesion
+    ):
         print("La asistencia de esta sesión ya fue registrada.")
         print("Utilice la opción modificar asistencia.")
 
     else:
 
+        print("\n===== REGISTRO DE ASISTENCIA =====")
+
         for i in range(len(matriz_estudiantes)):
 
             if matriz_estudiantes[i][3] == "Activo":
 
-                print("Estudiante:", matriz_estudiantes[i][1])
+                print(
+                    "\nEstudiante:",
+                    matriz_estudiantes[i][1]
+                )
 
-                estado = input("Ingrese P, A, T o J: ")
+                estado = input(
+                    "Ingrese P, A, T o J: "
+                )
 
                 estado = validar_estado(estado)
 
                 matriz_asistencias[i][posicion_sesion] = estado
 
-        print("Asistencia registrada correctamente.")
+        print("\nAsistencia registrada correctamente.")
 
 
-def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def modificar_asistencia(matriz_estudiantes,matriz_sesiones,matriz_asistencias):
 
     continuar = "S"
 
     while continuar == "S":
 
-        legajo = input("Ingrese el legajo del estudiante: ")
+        legajo = input(
+            "\nIngrese el legajo del estudiante "
+            "(0 para volver): "
 
-        posicion_estudiante = -1
+        ).strip()
 
-        for i in range(len(matriz_estudiantes)):
+        if legajo == "0":
+            return
 
-            if matriz_estudiantes[i][0] == legajo:
-                posicion_estudiante = i
-                break
+        posicion_estudiante = buscar_posicion_estudiante(
+            matriz_estudiantes,
+            legajo
+        )
 
         if posicion_estudiante == -1:
             print("Estudiante no encontrado.")
 
         else:
 
-            posicion_sesion = seleccionar_sesion(matriz_sesiones)
+            posicion_sesion = seleccionar_sesion(
+                matriz_sesiones
+            )
 
-            if posicion_sesion != None:
+            if posicion_sesion == None:
+                return
 
-                estado_actual = matriz_asistencias[posicion_estudiante][posicion_sesion]
+            estado_actual = matriz_asistencias[
+                posicion_estudiante
+            ][posicion_sesion]
 
-                if estado_actual == "":
-                    print("No hay una asistencia registrada para modificar.")
+            if estado_actual == "":
+                print(
+                    "No hay una asistencia registrada "
+                    "para modificar."
+                )
 
-                else:
+            else:
 
-                    print("Estudiante:", matriz_estudiantes[posicion_estudiante][1])
-                    print("Estado actual:", estado_actual)
+                print(
+                    "\nEstudiante:",
+                    matriz_estudiantes[
+                        posicion_estudiante
+                    ][1]
+                )
 
-                    nuevo_estado = input("Ingrese el nuevo estado (P, A, T o J): ")
+                print(
+                    "Estado actual:",
+                    estado_actual
+                )
 
-                    nuevo_estado = validar_estado(nuevo_estado)
+                nuevo_estado = input(
+                    "Ingrese el nuevo estado "
+                    "(P, A, T o J) o 0 para cancelar: "
+                ).strip()
 
-                    matriz_asistencias[posicion_estudiante][posicion_sesion] = nuevo_estado
+                if nuevo_estado == "0":
+                    print("Modificación cancelada.")
+                    return
 
-                    print("Asistencia modificada correctamente.")
+                nuevo_estado = validar_estado(
+                    nuevo_estado
+                )
 
-        continuar = input("¿Desea modificar otra asistencia? (S/N): ").upper()
+                matriz_asistencias[
+                    posicion_estudiante
+                ][posicion_sesion] = nuevo_estado
 
-        while continuar != "S" and continuar != "N":
-            print("Opción inválida.")
-            continuar = input("Ingrese S para continuar o N para volver: ").upper()
+                print(
+                    "Asistencia modificada correctamente."
+                )
+
+        continuar = input(
+            "\n¿Desea modificar otra asistencia? (S/N): "
+        )
+
+        continuar = validar_si_no(continuar)
 
 
-def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def mostrar_planilla_general(matriz_estudiantes,matriz_sesiones,matriz_asistencias):
 
     if len(matriz_estudiantes) == 0:
         print("No hay estudiantes registrados.")
@@ -140,30 +227,50 @@ def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asisten
         print("No hay sesiones registradas.")
         return
 
-    print("Legajo\tNombre", end="")
+    print("\n===== PLANILLA GENERAL =====\n")
 
-    for i in range(len(matriz_sesiones)):
-        print("\tS" + matriz_sesiones[i][0], end="")
+    print(
+        f"{'Legajo':<10}"
+        f"{'Nombre':<25}",
+        end=""
+    )
+
+    for sesion in matriz_sesiones:
+
+        titulo_sesion = "S" + sesion[0]
+
+        print(
+            f"{titulo_sesion:^8}",
+            end=""
+        )
 
     print()
 
     for i in range(len(matriz_estudiantes)):
 
-        print(matriz_estudiantes[i][0], end="\t")
-        print(matriz_estudiantes[i][1], end="\t")
+        print(
+            f"{matriz_estudiantes[i][0]:<10}"
+            f"{matriz_estudiantes[i][1]:<25}",
+            end=""
+        )
 
         for j in range(len(matriz_sesiones)):
 
             estado = matriz_asistencias[i][j]
 
             if estado == "":
-                print("-", end="\t")
-            else:
-                print(estado, end="\t")
+                estado = "-"
+
+            print(
+                f"{estado:^8}",
+                end=""
+            )
 
         print()
 
-def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+
+def menu_asistencias(matriz_estudiantes,matriz_sesiones,matriz_asistencias):
+   
 
     opcion = ""
 
@@ -175,9 +282,12 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         print("3. Mostrar planilla general")
         print("0. Volver")
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input(
+            "Seleccione una opción: "
+        ).strip()
 
         if opcion == "1":
+
             registrar_asistencia(
                 matriz_estudiantes,
                 matriz_sesiones,
@@ -185,6 +295,7 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
             )
 
         elif opcion == "2":
+
             modificar_asistencia(
                 matriz_estudiantes,
                 matriz_sesiones,
@@ -192,6 +303,7 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
             )
 
         elif opcion == "3":
+
             mostrar_planilla_general(
                 matriz_estudiantes,
                 matriz_sesiones,
@@ -199,40 +311,12 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
             )
 
         elif opcion == "0":
+
             print("Volviendo al menú principal...")
 
         else:
+
             print("Opción inválida.")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-matriz_estudiantes = [
-    ["1001", "Ana Pérez", "A", "Activo"],
-    ["1002", "Juan López", "A", "Activo"],
-    ["1003", "Sofía Gómez", "A", "Inactivo"]
-]
-
-matriz_sesiones = [
-    ["1", "01/09/2026", "Programación I", "Matrices"],
-    ["2", "08/09/2026", "Programación I", "Funciones"]
-]
-
-matriz_asistencias = [
-    ["", ""],
-    ["", ""],
-    ["", ""]
-]
-
-
-menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+    return  matriz_asistencias
