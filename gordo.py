@@ -70,7 +70,7 @@ def verificacion_legajo(legajo,matriz_estudiantes):
                 return legajo
 
 def validar_nombre(nombre,matriz_estudiantes):
-    # Verifica que el nombre ingresado no este repetido entre los alumnos ya cargados
+    # Verifica que el nombre ingresado no este repetido entre los alumnos ya cargados y que el nombre solo contenga letras
     salida=1
     valido=True
 
@@ -88,7 +88,7 @@ def validar_nombre(nombre,matriz_estudiantes):
                     i=0  # reinicia el contador para volver a validar el nuevo nombre desde el principio
                     nombre=input("el nombre no es valido, ingrese uno nuevo: ")
                     valido=False
-                elif nombre.isalpha():#verifico que solo haya letras
+                elif not nombre.isalpha():#verifico que solo haya letras en el nombre
                     i=0  # reinicia el contador para volver a validar el nuevo nombre desde el principio
                     nombre=input("el nombre no es valido, hay numeros dentro del nombre, porfavor ingrese uno nuevo: ")
                     valido=False
@@ -229,8 +229,7 @@ def mostrar_estudiantes(matriz_estudiantes):
         print("no hay estudiantes registrados")
         return
     else:
-        cad="LEGAJO","  ", "NOMBRE","  ", "ESTADO"
-        print(cad.ljust)
+        print("%-8s"% "LEGAJO","  ","%-10s"% "NOMBRE","  ","%-10s"% "ESTADO")
         # el porcentaje negativo hace que todo se oriente hacia la izquierda
         for i in range(len(matriz_estudiantes)):
             
