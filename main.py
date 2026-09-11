@@ -1,6 +1,6 @@
 from gordo import *
 from santichad import *
-from pollo import *
+from Pollo import *
 
 
 def main():
@@ -15,8 +15,23 @@ def main():
         print("\n 1. Menu de estudiantes \n 2. Menu de asistencia \n 3. Menu de sesiones \n 4. Menu de consultas \n 5. Finalizar Programa")
         salida=int(input("Seleccione una opcion: "))
         if salida==1:
-            main_estudiantes()
+            matriz_estudiantes=main_estudiantes()
         elif salida ==2:
-            menu_asistencias()
+            if len(matriz_estudiantes)==0 or len(matriz_sesiones)==0:
+                print()
+                print("No hay estudiantes ni sesiones cargadas")
+            else:
+                matriz_asistencias=menu_asistencias(matriz_estudiantes,matriz_sesiones,matriz_asistencias)
+        elif salida==3:
+            if len(matriz_estudiantes)==0:
+                print()
+                print("No hay estudiantes cargados")
+            else:
+                matriz_sesiones=menu_sesiones(matriz_sesiones,matriz_asistencias)
+        else:
+            print("Opcion invalida, intente nuevamente")
+
+main()
+
 
         

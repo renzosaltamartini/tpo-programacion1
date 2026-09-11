@@ -114,7 +114,7 @@ def baja_estudiantes(matriz_estudiantes):
         for i in range(len(matriz_estudiantes)):
             # matriz_estudiantes[i][0] es la posicion donde se guarda el legajo de cada alumno
             if matriz_estudiantes[i][0]==modificar:
-                matriz_estudiantes.pop(i)
+                matriz_estudiantes[i][2]=="Inactivo"
                 print()
                 print("alumno eliminado con exito")
                 return matriz_estudiantes
