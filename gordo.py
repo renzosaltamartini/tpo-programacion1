@@ -78,6 +78,8 @@ def validar_nombre(nombre,matriz_estudiantes):
         return nombre
     else:
 
+        
+            
         while salida!=0:
             valido=True
             for i in range(len(matriz_estudiantes)):
@@ -85,6 +87,10 @@ def validar_nombre(nombre,matriz_estudiantes):
                 if nombre == matriz_estudiantes[i][1]:
                     i=0  # reinicia el contador para volver a validar el nuevo nombre desde el principio
                     nombre=input("el nombre no es valido, ingrese uno nuevo: ")
+                    valido=False
+                elif nombre.isalpha():#verifico que solo haya letras
+                    i=0  # reinicia el contador para volver a validar el nuevo nombre desde el principio
+                    nombre=input("el nombre no es valido, hay numeros dentro del nombre, porfavor ingrese uno nuevo: ")
                     valido=False
 
             if  valido==True:
@@ -223,7 +229,8 @@ def mostrar_estudiantes(matriz_estudiantes):
         print("no hay estudiantes registrados")
         return
     else:
-        print("%-8s"% "LEGAJO","  ","%-10s"% "NOMBRE","  ","%-10s"% "ESTADO")
+        cad="LEGAJO","  ", "NOMBRE","  ", "ESTADO"
+        print(cad.ljust)
         # el porcentaje negativo hace que todo se oriente hacia la izquierda
         for i in range(len(matriz_estudiantes)):
             
