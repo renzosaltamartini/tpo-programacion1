@@ -238,7 +238,7 @@ def mostrar_estudiantes(matriz_estudiantes):
 
 
 
-def main():
+def main_estudiantes():
     # Funcion principal: muestra el menu y deriva las opciones a cada funcion segun lo elegido
     salida=-1
     opcion=0
@@ -269,4 +269,4 @@ def main():
         else:
             print("Opcion invalida, intente nuevamente")
 
-main()
+main_estudiantes()
