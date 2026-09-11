@@ -268,5 +268,6 @@ def main_estudiantes():
             salida=0
         else:
             print("Opcion invalida, intente nuevamente")
+    return matriz_estudiantes
 
 main_estudiantes()
