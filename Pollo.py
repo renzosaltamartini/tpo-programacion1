@@ -80,43 +80,29 @@ def validar_fecha(fecha):
                 mes = int(mes)
                 año = int(año)
 
-                if año > 0:
+                validacion = False
 
-                    if mes > 0 and mes <= 12:
+                if año > 0 and 1 <= mes <= 12:
 
-                        if mes == 2:
+                    if mes == 2:
 
-                            if año % 400 == 0:
-                                dias = 29
-
-                            elif año % 100 == 0:
-                                dias = 28
-
-                            elif año % 4 == 0:
-                                dias = 29
-
-                            else:
-                                dias = 28
-
-                        elif mes == 4 or mes == 6 or mes == 9 or mes == 11:
-                            dias = 30
+                        if año % 400 == 0 or (año % 4 == 0 and año % 100 != 0):
+                            dias = 29
 
                         else:
-                            dias = 31
+                            dias = 28
 
-                        if dia > 0 and dia <= dias:
-                            validacion = True
-
-                        else:
-                            validacion = False
+                    elif mes == 4 or mes == 6 or mes == 9 or mes == 11:
+                        dias = 30
 
                     else:
-                        validacion = False
+                        dias = 31
 
-                else:
-                    validacion = False
+                    if 1 <= dia <= dias:
+                        validacion = True
 
     return validacion
+
 
 
 def validar_texto_no_vacio(texto):
@@ -175,6 +161,8 @@ def crear_sesion(sesiones, asistencias):
 
     # Chequeo de que la matriz sigue teniendo las dimensiones correctas
     verificar_dimensiones_matriz(asistencias, sesiones)
+
+    return asistencias, sesiones
 
 
 def listar_sesiones(sesiones):
@@ -264,7 +252,7 @@ def menu_sesiones(sesiones, asistencias):
         opcion = int(input("Seleccione una opcion: "))
 
         if opcion == 1:
-            crear_sesion(sesiones, asistencias)
+            asistencias,sesiones=crear_sesion(sesiones, asistencias)
 
         elif opcion == 2:
             listar_sesiones(sesiones)
@@ -283,3 +271,5 @@ def menu_sesiones(sesiones, asistencias):
 
         else:
             print("Opcion invalida. Intentelo de nuevo")
+
+    return sesiones
