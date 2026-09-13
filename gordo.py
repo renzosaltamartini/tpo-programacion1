@@ -238,11 +238,10 @@ def mostrar_estudiantes(matriz_estudiantes):
 
 
 
-def main_estudiantes():
+def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
     # Funcion principal: muestra el menu y deriva las opciones a cada funcion segun lo elegido
     salida=-1
     opcion=0
-    matriz_estudiantes=[]
 
     print("Estudiantes")
     print()
@@ -255,7 +254,7 @@ def main_estudiantes():
         opcion=int(input("ingrese la opcion que quiera utilizar: "))
 
         if opcion==1:
-            matriz_estudiantes=registrar_estudiantes(matriz_estudiantes)
+            matriz_estudiantes=registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
         elif opcion==2:
             matriz_estudiantes=baja_estudiantes(matriz_estudiantes)
         elif opcion==3:
@@ -269,5 +268,3 @@ def main_estudiantes():
         else:
             print("Opcion invalida, intente nuevamente")
     return matriz_estudiantes
-
-main_estudiantes()
