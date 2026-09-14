@@ -125,6 +125,8 @@ def crear_sesion(sesiones, asistencias):
         print("El numero de sesion debe contener solo numeros.")
         numero_sesion = input("Ingrese el numero de sesion: ")
 
+    numero_sesion = int(numero_sesion)
+
     while not validar_numero_sesion(numero_sesion, sesiones):
         print("Ese numero de sesion ya existe.")
         numero_sesion = input("Ingrese un numero de sesion distinto: ")
@@ -132,6 +134,8 @@ def crear_sesion(sesiones, asistencias):
         while not validar_numero(numero_sesion):
             print("El numero de sesion debe contener solo numeros.")
             numero_sesion = input("Ingrese el numero de sesion: ")
+
+        numero_sesion = int(numero_sesion)
 
     fecha = input("Ingrese la fecha (DD/MM/AAAA): ")
 
@@ -263,6 +267,8 @@ def menu_sesiones(sesiones, asistencias):
             while not validar_numero(numero_sesion):
                 print("El numero de sesion debe contener solo numeros.")
                 numero_sesion = input("Ingrese el numero de sesion: ")
+
+            numero_sesion = int(numero_sesion)
 
             buscar_sesion(sesiones, numero_sesion)
 
