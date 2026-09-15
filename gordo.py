@@ -269,7 +269,7 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         opcion=int(input("ingrese la opcion que quiera utilizar: "))
 
         if opcion==1:
-            matriz_estudiantes=registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            matriz_estudiantes,matriz_asistencias=registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
         elif opcion==2:
             matriz_estudiantes=baja_estudiantes(matriz_estudiantes)
         elif opcion==3:
