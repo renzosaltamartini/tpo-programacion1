@@ -1,4 +1,4 @@
-def registrar_estudiantes(matriz_estudiantes):
+def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
     # Permite cargar uno o varios estudiantes nuevos hasta que el usuario decida no continuar
     salida=3
     alumno=[]
@@ -30,6 +30,8 @@ def registrar_estudiantes(matriz_estudiantes):
                     estado_add="Inactivo"
                 alumno.append(estado_add)
 
+        agregar_fila_asistencia(matriz_asistencias,len(matriz_sesiones))
+
         # Pregunta si se desea seguir cargando mas alumnos (0 = si, 1 = no)
         while salida!=1 and salida!=0:
         
@@ -38,6 +40,7 @@ def registrar_estudiantes(matriz_estudiantes):
             salida=int(input("Seleccione una opcion: "))
             if salida!=1 and salida!=0:
                 print("Opicon invalida")
+
 
         # Se agrega el alumno armado (legajo, nombre, estado) a la matriz y se reinicia la lista temporal
         matriz_estudiantes.append(alumno)
@@ -236,6 +239,18 @@ def mostrar_estudiantes(matriz_estudiantes):
             print("%-8d"%matriz_estudiantes[i][0],"  ","%-10s"%matriz_estudiantes[i][1],"  ","%-10s"%matriz_estudiantes[i][2])
     return
 
+def agregar_fila_asistencia(asistencias, cantidad_sesiones):
+
+    # Agrega una fila nueva (nuevo estudiante),
+    # con una columna por cada sesion existente.
+
+    fila_nueva = []
+
+    for i in range(cantidad_sesiones):
+        fila_nueva.append("-")
+
+    asistencias.append(fila_nueva)
+
 
 
 def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
@@ -250,7 +265,7 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         print("Opciones del menu: ")
         print()
         print(" 1. Registrar Estudiantes \n 2. Dar de baja estudiantes \n 3. Buscar Estudiantes \n 4. Modificar estudiantes")
-        print(" 5. Mostrar Estudiantes \n 6. Finalizar Programa")
+        print(" 5. Mostrar Estudiantes \n 6. Volver al Menu Principal")
         opcion=int(input("ingrese la opcion que quiera utilizar: "))
 
         if opcion==1:
@@ -267,4 +282,4 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
             salida=0
         else:
             print("Opcion invalida, intente nuevamente")
-    return matriz_estudiantes
+    return matriz_estudiantes,matriz_asistencias
