@@ -9,7 +9,7 @@ def main():
     matriz_asistencias=[]
     matriz_sesiones=[]
 
-    salida=0
+    salida=1
     while salida!=0:
         print("-"*10,"Gestion de asistencia","-"*10)
         print()
