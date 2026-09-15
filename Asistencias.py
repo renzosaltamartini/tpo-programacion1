@@ -1,5 +1,12 @@
+# =========================================
+# SISTEMA DE REGISTRO DE ASISTENCIA
+# GESTION DE ASISTENCIAS
+# =========================================
+
+
 def validar_estado(estado):
 
+    # Convierte el estado a mayuscula y valida que sea una de las opciones permitidas.
     estado = estado.strip().upper()
 
     while estado not in ["P", "A", "T", "J"]:
@@ -11,6 +18,7 @@ def validar_estado(estado):
 
 def validar_si_no(respuesta):
 
+    # Valida respuestas de tipo si/no utilizadas para continuar dentro de los menus.
     respuesta = respuesta.strip().upper()
 
     while respuesta not in ["S", "N"]:
@@ -22,6 +30,7 @@ def validar_si_no(respuesta):
 
 def mostrar_estados_asistencia():
 
+    # Muestra una referencia de las letras utilizadas para registrar cada estado de asistencia.
     print("\nEstados de asistencia:")
     print("P - Presente")
     print("A - Ausente")
@@ -31,6 +40,7 @@ def mostrar_estados_asistencia():
 
 def seleccionar_sesion(matriz_sesiones):
 
+    # Muestra las sesiones cargadas y devuelve la posicion de la sesion elegida.
     if len(matriz_sesiones) == 0:
         print("No hay sesiones registradas.")
         return None
@@ -46,9 +56,11 @@ def seleccionar_sesion(matriz_sesiones):
 
     while True:
 
+        # La opcion 0 permite volver sin seleccionar ninguna sesion.
         if numero == "0":
             return None
 
+        # Se busca el numero real de sesion y se devuelve su posicion dentro de la matriz.
         if numero.isdigit():
 
             for i in range(len(matriz_sesiones)):
@@ -62,6 +74,8 @@ def seleccionar_sesion(matriz_sesiones):
 
 def sesion_ya_registrada(matriz_asistencias, posicion_sesion):
 
+    # Si alguna fila de la columna seleccionada tiene un valor distinto de "-",
+    # se considera que la asistencia de esa sesion ya fue tomada.
     for fila in matriz_asistencias:
 
         if fila[posicion_sesion] != "-":
@@ -72,6 +86,7 @@ def sesion_ya_registrada(matriz_asistencias, posicion_sesion):
 
 def hay_estudiantes_activos(matriz_estudiantes):
 
+    # Verifica que exista al menos un estudiante activo antes de registrar asistencia.
     for estudiante in matriz_estudiantes:
 
         if estudiante[2] == "Activo":
@@ -82,16 +97,19 @@ def hay_estudiantes_activos(matriz_estudiantes):
 
 def buscar_posicion_estudiante(matriz_estudiantes, legajo):
 
+    # Busca un estudiante por legajo y devuelve su posicion dentro de la matriz.
     for i in range(len(matriz_estudiantes)):
 
         if matriz_estudiantes[i][0] == legajo:
             return i
 
+    # Se devuelve -1 cuando el legajo no fue encontrado.
     return -1
 
 
 def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
+    # Solo se permite registrar asistencia si existe al menos un estudiante activo.
     if not hay_estudiantes_activos(matriz_estudiantes):
         print("No hay estudiantes activos para registrar asistencia.")
         return
@@ -103,6 +121,7 @@ def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
     if posicion_sesion == None:
         return
 
+    # No se vuelve a cargar una sesion que ya tenga asistencias registradas.
     if sesion_ya_registrada(matriz_asistencias, posicion_sesion):
         print("La asistencia de esta sesión ya fue registrada.")
         print("Utilice la opción modificar asistencia.")
@@ -111,6 +130,7 @@ def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
         print("\n===== REGISTRO DE ASISTENCIA =====")
 
+        # Se recorre la matriz de estudiantes y se registra solamente a los activos.
         for i in range(len(matriz_estudiantes)):
 
             if matriz_estudiantes[i][2] == "Activo":
@@ -120,6 +140,7 @@ def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
                 estado = input("Ingrese P, A, T o J: ")
                 estado = validar_estado(estado)
 
+                # La fila coincide con el estudiante y la columna con la sesion seleccionada.
                 matriz_asistencias[i][posicion_sesion] = estado
 
         print("\nAsistencia registrada correctamente.")
@@ -127,6 +148,7 @@ def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
 def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
+    # Permite corregir una asistencia ya cargada buscando primero al estudiante por legajo.
     mostrar_estados_asistencia()
 
     continuar = "S"
@@ -135,6 +157,7 @@ def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
         legajo = input("\nIngrese el legajo del estudiante (0 para volver): ").strip()
 
+        # Se valida que el legajo ingresado contenga solamente numeros.
         while not legajo.isdigit():
             print("Legajo inválido.")
             legajo = input("Ingrese un legajo válido o 0 para volver: ").strip()
@@ -158,6 +181,7 @@ def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
             estado_actual = matriz_asistencias[posicion_estudiante][posicion_sesion]
 
+            # El guion indica que para ese estudiante y sesion todavia no hay asistencia cargada.
             if estado_actual == "-":
                 print("No hay una asistencia registrada para modificar.")
 
@@ -174,6 +198,7 @@ def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
                 nuevo_estado = validar_estado(nuevo_estado)
 
+                # Se reemplaza solamente el estado ubicado en la fila y columna seleccionadas.
                 matriz_asistencias[posicion_estudiante][posicion_sesion] = nuevo_estado
 
                 print("Asistencia modificada correctamente.")
@@ -184,6 +209,7 @@ def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias
 
 def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
+    # Para mostrar la planilla deben existir estudiantes y sesiones cargadas.
     if len(matriz_estudiantes) == 0:
         print("No hay estudiantes registrados.")
         return
@@ -194,8 +220,10 @@ def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asisten
 
     print("\n===== PLANILLA GENERAL =====\n")
 
+    # Se imprimen primero las columnas fijas de legajo y nombre.
     print(f"{'Legajo':<10}{'Nombre':<25}", end="")
 
+    # Cada sesion se agrega como una columna de la planilla.
     for sesion in matriz_sesiones:
 
         titulo_sesion = "S" + str(sesion[0])
@@ -203,6 +231,7 @@ def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asisten
 
     print()
 
+    # Cada fila corresponde a un estudiante y muestra sus estados por sesion.
     for i in range(len(matriz_estudiantes)):
 
         print(f"{matriz_estudiantes[i][0]:<10}{matriz_estudiantes[i][1]:<25}", end="")
@@ -217,6 +246,7 @@ def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asisten
 
 def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
+    # Menu principal del modulo de asistencias.
     opcion = ""
 
     while opcion != "0":

@@ -1,3 +1,4 @@
+# Se importan las funciones de cada modulo para utilizarlas desde un unico programa principal.
 from Estudiantes import *
 from Asistencias import *
 from Sesiones import *
@@ -5,10 +6,13 @@ from Consultas import *
 
 
 def main():
+    # Las tres matrices principales se crean vacias al iniciar el programa.
+    # Sus posiciones se mantienen relacionadas durante toda la ejecucion.
     matriz_estudiantes=[]
     matriz_asistencias=[]
     matriz_sesiones=[]
 
+    # El menu principal conecta los cuatro modulos del sistema.
     salida=1
     while salida!=0:
         print("-"*10,"Gestion de asistencia","-"*10)
@@ -16,10 +20,12 @@ def main():
         salida=int(input("Seleccione una opcion: "))
 
         if salida==1:
+            # El menu de estudiantes puede modificar estudiantes y agregar filas a asistencias.
             matriz_estudiantes,matriz_asistencias=menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
 
         elif salida ==2:
 
+            # Para registrar asistencias deben existir estudiantes y sesiones.
             if len(matriz_estudiantes)==0 or len(matriz_sesiones)==0:
                 print()
                 print("No hay estudiantes ni sesiones cargadas")
@@ -27,6 +33,7 @@ def main():
                 matriz_asistencias=menu_asistencias(matriz_estudiantes,matriz_sesiones,matriz_asistencias)
 
         elif salida==3:
+            # Las sesiones se habilitan una vez que existe al menos un estudiante cargado.
             if len(matriz_estudiantes)==0:
                 print()
                 print("No hay estudiantes cargados")
@@ -34,6 +41,7 @@ def main():
                 matriz_sesiones=menu_sesiones(matriz_sesiones,matriz_asistencias)
 
         elif salida==4:
+            # Las consultas necesitan que las matrices ya contengan informacion.
             if len(matriz_estudiantes)==0 or len(matriz_sesiones)==0 or len(matriz_asistencias)==0:
                 print()
                 print("No hay estudiantes ni sesiones cargadas")
@@ -41,6 +49,7 @@ def main():
                 menu_consultas(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
 
         elif salida==5:
+            # La opcion 5 cambia la variable de control y finaliza el programa.
             salida=0
             print()
             print("-"*10,"Programa Finalizado","-"*10)
@@ -48,4 +57,6 @@ def main():
         else:
             print("Opcion invalida, intente nuevamente")
 
+
+# Se inicia el programa llamando a la funcion principal.
 main()
