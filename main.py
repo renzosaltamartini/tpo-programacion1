@@ -42,6 +42,7 @@ def main():
                 menu_consultas(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
 
         elif salida==5:
+            salida=0
             print()
             print("-"*10,"Programa Finalizado","-"*10)
 

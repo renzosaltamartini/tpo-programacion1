@@ -117,7 +117,7 @@ def baja_estudiantes(matriz_estudiantes):
         for i in range(len(matriz_estudiantes)):
             # matriz_estudiantes[i][0] es la posicion donde se guarda el legajo de cada alumno
             if matriz_estudiantes[i][0]==modificar:
-                matriz_estudiantes[i][2]=="Inactivo"
+                matriz_estudiantes[i][2]="Inactivo"
                 print()
                 print("alumno eliminado con exito")
                 return matriz_estudiantes
@@ -269,7 +269,7 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         opcion=int(input("ingrese la opcion que quiera utilizar: "))
 
         if opcion==1:
-            matriz_estudiantes,matriz_asistencias=registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            matriz_estudiantes=registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
         elif opcion==2:
             matriz_estudiantes=baja_estudiantes(matriz_estudiantes)
         elif opcion==3:
