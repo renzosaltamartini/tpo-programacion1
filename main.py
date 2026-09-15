@@ -1,7 +1,7 @@
-from gordo import *
-from santichad import *
-from Pollo import *
-from renzo import *
+from Estudiantes import *
+from Asistencias import *
+from Sesiones import *
+from Consultas import *
 
 
 def main():
@@ -12,7 +12,6 @@ def main():
     salida=1
     while salida!=0:
         print("-"*10,"Gestion de asistencia","-"*10)
-        print()
         print("\n 1. Menu de estudiantes \n 2. Menu de asistencia \n 3. Menu de sesiones \n 4. Menu de consultas \n 5. Finalizar Programa")
         salida=int(input("Seleccione una opcion: "))
 
@@ -50,6 +49,3 @@ def main():
             print("Opcion invalida, intente nuevamente")
 
 main()
-
-
-        
