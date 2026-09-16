@@ -17,7 +17,14 @@ def main():
     while salida!=0:
         print("-"*10,"Gestion de asistencia","-"*10)
         print("\n 1. Menu de estudiantes \n 2. Menu de asistencia \n 3. Menu de sesiones \n 4. Menu de consultas \n 5. Finalizar Programa")
-        salida=int(input("Seleccione una opcion: "))
+
+        salida=input("Seleccione una opcion: ").strip()
+
+        while not salida.isdigit():
+            print("Opcion invalida, ingrese un numero.")
+            salida=input("Seleccione una opcion: ").strip()
+
+        salida=int(salida)
 
         if salida==1:
             # El menu de estudiantes puede modificar estudiantes y agregar filas a asistencias.
@@ -28,7 +35,7 @@ def main():
             # Para registrar asistencias deben existir estudiantes y sesiones.
             if len(matriz_estudiantes)==0 or len(matriz_sesiones)==0:
                 print()
-                print("No hay estudiantes ni sesiones cargadas")
+                print("No hay estudiantes o sesiones cargadas")
             else:
                 matriz_asistencias=menu_asistencias(matriz_estudiantes,matriz_sesiones,matriz_asistencias)
 
@@ -44,7 +51,7 @@ def main():
             # Las consultas necesitan que las matrices ya contengan informacion.
             if len(matriz_estudiantes)==0 or len(matriz_sesiones)==0 or len(matriz_asistencias)==0:
                 print()
-                print("No hay estudiantes ni sesiones cargadas")
+                print("No hay estudiantes o sesiones cargadas")
             else:
                 menu_consultas(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
 
@@ -58,5 +65,5 @@ def main():
             print("Opcion invalida, intente nuevamente")
 
 
-# Se inicia el programa llamando a la funcion principal.
+
 main()

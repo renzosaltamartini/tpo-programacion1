@@ -121,8 +121,8 @@ def crear_sesion(sesiones, asistencias):
 
     numero_sesion = input("Ingrese el numero de sesion: ")
 
-    while not validar_numero(numero_sesion):
-        print("El numero de sesion debe contener solo numeros.")
+    while not validar_numero(numero_sesion) or int(numero_sesion) <= 0:
+        print("El numero de sesion debe ser un numero mayor a 0.")
         numero_sesion = input("Ingrese el numero de sesion: ")
 
     numero_sesion = int(numero_sesion)
@@ -131,8 +131,8 @@ def crear_sesion(sesiones, asistencias):
         print("Ese numero de sesion ya existe.")
         numero_sesion = input("Ingrese un numero de sesion distinto: ")
 
-        while not validar_numero(numero_sesion):
-            print("El numero de sesion debe contener solo numeros.")
+        while not validar_numero(numero_sesion) or int(numero_sesion) <= 0:
+            print("El numero de sesion debe ser un numero mayor a 0.")
             numero_sesion = input("Ingrese el numero de sesion: ")
 
         numero_sesion = int(numero_sesion)
