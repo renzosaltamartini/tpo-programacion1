@@ -131,34 +131,89 @@ def buscar_estudiantes(matriz_estudiantes):
     # Busca un alumno por legajo y muestra sus datos (legajo, nombre y estado) por pantalla
     print()
     print("Buscar Estudiante")
-    buscar=0
-    encontrado=0
+    opcion=0
+    alumnos=[]
 
     if len(matriz_estudiantes)==0:
-            print()
-            print("No hay alumnos cargados")
-            return matriz_estudiantes
-    else:
-
-        buscar=int(input("Ingrese el legajo del alumno: "))
-
-        for i in range(len(matriz_estudiantes)):
-
-            if matriz_estudiantes[i][0]==buscar:
-                encontrado=1
-
-                # Se copian los datos del alumno encontrado (legajo, nombre, estado) para imprimirlos
-
-                print("{:<8}   {:<15}   {:<10}".format("Legajo","Nombre","Estado"))#el porcentaje menor alinea todo a la izquierda
-                print("{:<8}   {:<15}   {:<10}".format(matriz_estudiantes[i][0],matriz_estudiantes[i][1],matriz_estudiantes[i][2]))
-            
-    if encontrado==0:
         print()
-        print("el legajo no existe o no es valido")
+        print("No hay alumnos cargados")
+        return matriz_estudiantes
+    else:
+        print()
+        print("de que forma desea buscar el alumno:")
+        print("1. Nombre")
+        print("2. legajo")
+        opcion=int(input("Opcion a elegir:"))
+
+        while opcion!= 1 and opcion!=2:
+            print()
+            print("Opcion invalida, intente nuevamente")
+            print()
+            print("de que forma desea buscar el alumno:")
+            print("1. Nombre")
+            print("2. legajo")
+            opcion=int(input("Opcion a elegir:"))
+
+        if opcion==1:
+            nombre=input("ingrese el nombre/apellido del alumno")
+            alumnos=buscar_nombre(matriz_estudiantes,nombre)
+            while len(alumnos)==0:
+                print("No se ha encontrado, Intente nuevamente")
+                print()
+                nombre=input("ingrese el nombre/apellido del alumno")
+                alumnos=buscar_nombre(matriz_estudiantes,nombre)
+
+            print("{:<8}   {:<15}   {:<10}".format("Legajo","Nombre","Estado"))
+            
+            for i in alumnos:
+                print("{:<8}   {:<15}   {:<10}".format(matriz_estudiantes[i][0],matriz_estudiantes[i][1],matriz_estudiantes[i][2]))
+
+        elif opcion==2:
+
+            while len(alumnos)==0:
+
+                legajo=int(input("Ingrese el legajo del alumno: "))
+                alumnos=buscar_legajo(matriz_estudiantes,legajo)
+
+
+                if len(alumnos)==0:
+                    print()
+                    print("Legajo no encontrado, intente nuevamente")
+                    print()
+
+                else:
+                    print("{:<8}   {:<15}   {:<10}".format("Legajo","Nombre","Estado"))
+                    print("{:<8}   {:<15}   {:<10}".format(alumnos[0],alumnos[1],alumnos[2]))
+
 
 
 
     return
+
+def buscar_legajo(matriz,legajo):
+    alumnos=[]
+    for i in range(len(matriz)):
+
+        if matriz[i][0]==legajo:
+            # Se copian los datos del alumno encontrado (legajo, nombre, estado) para imprimirlos
+            alumnos.append(matriz[i][0])
+            alumnos.append(matriz[i][1])
+            alumnos.append(matriz[i][2])
+
+    return alumnos    
+
+def buscar_nombre(matriz,nombre):
+    alumnos = []
+
+    nombre = nombre.lower()
+    nombre = nombre.replace(" ", "")
+
+    for i in range(len(matriz)):
+
+        if nombre in matriz[i][1].lower().replace(" ", ""):
+            alumnos.append(i)
+
+    return alumnos
 
 def modificar_estudiantes(matriz_estudiantes):
     # Permite modificar el nombre o el estado de un alumno existente, buscandolo por legajo
@@ -245,7 +300,6 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
         fila_nueva.append("-")
 
     asistencias.append(fila_nueva)
-
 
 
 def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
