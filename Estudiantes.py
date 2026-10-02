@@ -5,10 +5,7 @@ def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencia
     estado = 0
     estado_add = ""
 
-    print()
-    print("=" * 50)
-    print("              REGISTRO DE ESTUDIANTES")
-    print("=" * 50)
+    generar_titulo_de_todos("REGISTRO DE ESTUDIANTE")
 
     while salida != 1:
         salida = 3
@@ -136,10 +133,7 @@ def validar_nombre(nombre, matriz_estudiantes):
 
 def baja_estudiantes(matriz_estudiantes):
     # Cambia el estado del alumno a Inactivo
-    print()
-    print("=" * 50)
-    print("              BAJA DE ESTUDIANTES")
-    print("=" * 50)
+    generar_titulo_de_todos("BAJA DE ESTUDIANTE")
 
     if len(matriz_estudiantes) == 0:
         print()
@@ -171,10 +165,7 @@ def baja_estudiantes(matriz_estudiantes):
 
 def buscar_estudiantes(matriz_estudiantes):
     # Busca un alumno por legajo o nombre
-    print()
-    print("=" * 50)
-    print("              BUSCAR ESTUDIANTE")
-    print("=" * 50)
+    generar_titulo_de_todos("BUSCAR ESTUDIANTE")
 
     opcion = 0
     alumnos = []
@@ -297,10 +288,7 @@ def buscar_nombre(matriz, nombre):
 
 def modificar_estudiantes(matriz_estudiantes):
     # Permite modificar el nombre o el estado de un alumno
-    print()
-    print("=" * 50)
-    print("             MODIFICAR ESTUDIANTE")
-    print("=" * 50)
+    generar_titulo_de_todos("MODIFICAR ESTUDIANTE")
 
     buscar = 0
     estado = 0
@@ -394,10 +382,8 @@ def modificar_estudiantes(matriz_estudiantes):
 
 def mostrar_estudiantes(matriz_estudiantes):
     # Muestra por pantalla el listado completo de alumnos cargados
-    print()
-    print("=" * 50)
-    print("              LISTADO DE ESTUDIANTES")
-    print("=" * 50)
+    generar_titulo_de_todos("LISTADO DE ESTUDIANTES")
+
 
     if len(matriz_estudiantes) == 0:
         print()
@@ -435,10 +421,7 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
 
 
 def reactivar_alumno(matriz_estudiantes):
-    print()
-    print("=" * 50)
-    print("           REACTIVACIÓN DE ESTUDIANTE")
-    print("=" * 50)
+    generar_titulo_de_todos("REACTIVACIÓN DE ESTUDIANTE")
 
     if len(matriz_estudiantes) == 0:
         print()
@@ -467,6 +450,14 @@ def reactivar_alumno(matriz_estudiantes):
 
     return matriz_estudiantes
 
+def generar_titulo_de_todos(titulo):
+    print()
+    print("=" * 50)
+    print(titulo.center(50))
+    print("=" * 50)
+
+    return
+
 
 def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
     # Función principal del menú de estudiantes
@@ -476,10 +467,8 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
     while salida != 0:
 
-        print()
-        print("=" * 50)
-        print("                 ESTUDIANTES")
-        print("=" * 50)
+        generar_titulo_de_todos("ESTUDIANTES")
+        
         print()
         print("  1. Registrar estudiantes")
         print("  2. Dar de baja estudiantes")
