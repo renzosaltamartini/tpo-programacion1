@@ -29,7 +29,6 @@ def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencia
 
         # Se pide el estado del alumno hasta que se ingrese una opción válida
         while estado != 1 and estado != 2:
-            print()
             print("Estado del alumno:")
             print("  1. Activo")
             print("  2. Inactivo")
