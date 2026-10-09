@@ -14,7 +14,7 @@ def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencia
         print()
         print("-" * 50)
 
-        legajo = int(input("Ingrese el legajo del alumno: "))
+        legajo = validar_inputs("Ingrese el legajo del alumno: ")
 
         # Se valida que el legajo no exista ya y sea un número válido
         alumno.append(verificacion_legajo(legajo, matriz_estudiantes))
@@ -30,7 +30,7 @@ def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencia
             print("  1. Activo")
             print("  2. Inactivo")
 
-            estado = int(input("Seleccione una opción: "))
+            estado = validar_inputs("Seleccione una opción: ")
 
             if estado != 1 and estado != 2:
                 print()
@@ -52,7 +52,7 @@ def registrar_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencia
             print("  0. Sí")
             print("  1. No")
 
-            salida = int(input("Seleccione una opción: "))
+            salida = validar_inputs("Seleccione una opción: ")
 
             if salida != 1 and salida != 0:
                 print()
@@ -83,7 +83,7 @@ def verificacion_legajo(legajo, matriz_estudiantes):
             for i in range(len(matriz_estudiantes)):
                 if legajo in matriz_estudiantes[i] or legajo < 0 or legajo == 0:
                     print()
-                    legajo = int(input("El legajo no es válido. Ingrese uno nuevo: "))
+                    legajo = validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
                     valido = False
 
             if valido == True:
@@ -143,7 +143,7 @@ def baja_estudiantes(matriz_estudiantes):
 
     else:
         print()
-        modificar = int(input("Ingrese el legajo del alumno: "))
+        modificar = validar_inputs("Ingrese el legajo del alumno: ")
 
         for i in range(len(matriz_estudiantes)):
 
@@ -183,7 +183,7 @@ def buscar_estudiantes(matriz_estudiantes):
         print("  1. Por nombre")
         print("  2. Por legajo")
 
-        opcion = int(input("\nSeleccione una opción: "))
+        opcion = validar_inputs("\nSeleccione una opción: ")
 
         while opcion != 1 and opcion != 2:
             print()
@@ -194,7 +194,7 @@ def buscar_estudiantes(matriz_estudiantes):
             print("  1. Por nombre")
             print("  2. Por legajo")
 
-            opcion = int(input("\nSeleccione una opción: "))
+            opcion = validar_inputs("\nSeleccione una opción: ")
 
         if opcion == 1:
             print()
@@ -232,7 +232,7 @@ def buscar_estudiantes(matriz_estudiantes):
 
             while len(alumnos) == 0:
                 print()
-                legajo = int(input("Ingrese el legajo del alumno: "))
+                legajo = validar_inputs("Ingrese el legajo del alumno: ")
 
                 alumnos = buscar_legajo(matriz_estudiantes, legajo)
 
@@ -303,7 +303,7 @@ def modificar_estudiantes(matriz_estudiantes):
 
     else:
         print()
-        buscar = int(input("Ingrese el legajo del alumno: "))
+        buscar = validar_inputs("Ingrese el legajo del alumno: ")
 
         for i in range(len(matriz_estudiantes)):
 
@@ -318,7 +318,7 @@ def modificar_estudiantes(matriz_estudiantes):
                     print("  1. Nombre")
                     print("  2. Estado")
 
-                    opcion = int(input("\nSeleccione una opción: "))
+                    opcion = validar_inputs("\nSeleccione una opción: ")
 
                     if opcion == 1:
                         print()
@@ -336,12 +336,12 @@ def modificar_estudiantes(matriz_estudiantes):
                         print("  1. Activo")
                         print("  2. Inactivo")
 
-                        estado = int(input("\nSeleccione una opción: "))
+                        estado = validar_inputs("\nSeleccione una opción: ")
 
                         while estado != 1 and estado != 2:
                             print()
                             print("Opción inválida. Intente nuevamente.")
-                            estado = int(input("Seleccione una opción: "))
+                            estado = validar_inputs("Seleccione una opción: ")
 
                         if estado == 2:
                             estado = "Inactivo"
@@ -431,7 +431,7 @@ def reactivar_alumno(matriz_estudiantes):
 
     else:
         print()
-        modificar = int(input("Ingrese el legajo del alumno: "))
+        modificar = validar_inputs("Ingrese el legajo del alumno: ")
 
         for i in range(len(matriz_estudiantes)):
 
@@ -458,6 +458,17 @@ def generar_titulo_de_todos(titulo):
 
     return
 
+def validar_inputs(Texto):
+
+    while True:
+        try:
+            variable=int(input(Texto))
+            break
+        except ValueError:
+            print("Opcion Invalida")
+            variable=int(input(Texto))
+
+    return variable
 
 def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
     # Función principal del menú de estudiantes
@@ -479,7 +490,7 @@ def menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         print("  7. Volver al menú principal")
         print()
 
-        opcion = int(input("Seleccione una opción: "))
+        opcion = validar_inputs("Seleccione una opcion: ")
 
         if opcion == 1:
             matriz_estudiantes = registrar_estudiantes(
