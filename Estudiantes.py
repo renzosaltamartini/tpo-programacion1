@@ -241,6 +241,7 @@ def modificar_nombre_estudiantes(matriz_estudiantes):
     buscar = 0
     opcion = 0
     encontrado = 0
+    alumno=[]
 
     if len(matriz_estudiantes) == 0:
         print()
@@ -276,20 +277,13 @@ def modificar_nombre_estudiantes(matriz_estudiantes):
                         )
 
                     if opcion == 1:
+                        
                         print()
                         print("Registro del alumno modificado correctamente.")
-                        print()
-                        print("-" * 50)
-                        print("{:<8}   {:<20}".format(
-                            "Legajo", "Nombre"
-                        ))
-                        print("-" * 50)
-
-                        print("{:<8}   {:<20}".format(
-                            matriz_estudiantes[i][0],
-                            matriz_estudiantes[i][1],
-                        ))
-
+                        
+                        alumno.append(matriz_estudiantes[i])
+                        imprimir_la_matriz(alumno)
+                        
                         print("-" * 50)
 
                     else:
@@ -316,18 +310,9 @@ def mostrar_estudiantes(matriz_estudiantes):
         return
 
     else:
-        print()
-        print("{:<8}   {:<20}".format(
-            "Legajo", "Nombre"
-        ))
-        print("-" * 50)
-
-        for i in range(len(matriz_estudiantes)):
-            print("{:<8}   {:<20}".format(
-                matriz_estudiantes[i][0],
-                matriz_estudiantes[i][1]
-            ))
-
+        
+        imprimir_la_matriz(matriz_estudiantes)
+        
         print("-" * 50)
         print()
 
@@ -339,6 +324,19 @@ def generar_titulo_de_todos(titulo):
     print("=" * 50)
 
     return
+
+def imprimir_la_matriz(matriz_estudiantes):
+    print()
+    print("{:<8}   {:<20}".format(
+        "Legajo", "Nombre"
+    ))
+    print("-" * 50)
+
+    for i in range(len(matriz_estudiantes)):
+        print("{:<8}   {:<20}".format(
+            matriz_estudiantes[i][0],
+            matriz_estudiantes[i][1]
+        ))
 
 
 def validar_inputs(Texto):
