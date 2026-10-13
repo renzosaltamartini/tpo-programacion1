@@ -12,7 +12,9 @@ def main():
     matriz_asistencias=[]
     matriz_sesiones=[]
 
-    # El menu principal conecta los cuatro modulos del sistema.
+
+
+
     salida=1
     while salida!=0:
         print("-"*10,"Gestion de asistencia","-"*10)
