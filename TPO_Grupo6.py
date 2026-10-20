@@ -11,9 +11,11 @@ def main():
     matriz_estudiantes=[]
     matriz_asistencias=[]
     matriz_sesiones=[]
-
-
-
+    
+    with open("matriz_alumnos.txt","r",encoding="utf-8") as estudiantes:
+        for linea in estudiantes:
+            datos = linea.strip().split(",")
+            matriz_estudiantes.append([datos[0],datos[1]])
 
     salida=1
     while salida!=0:
@@ -62,9 +64,13 @@ def main():
             salida=0
             print()
             print("-"*10,"Programa Finalizado","-"*10)
-
         else:
             print("Opcion invalida, intente nuevamente")
+
+        with open("matriz_alumnos.txt","w",encoding="utf-8") as estudiantes:
+            for estudiante in matriz_estudiantes:
+                estudiantes.write(estudiante[0] + "," + estudiante[1] + "\n")
+            
 
 
 
