@@ -221,7 +221,7 @@ def seleccionar_materia(cursadas):
 def modificar_materia(cursadas):
     materia = seleccionar_materia(cursadas)
     
-    if materia is None:
+    if materia == None:
         return cursadas
 
     nuevo_nombre = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el nuevo nombre: "))
@@ -308,10 +308,10 @@ def seleccionar_institucion_predeterminada(configuracion):
 
 
 def crear_grupo(cursadas, configuracion, materia=None):
-    if materia is None:
+    if materia == None:
         materia = seleccionar_materia(cursadas)
 
-    if materia is None:
+    if materia == None:
         return cursadas
 
     grupos = cursadas[materia]
@@ -385,14 +385,14 @@ def seleccionar_grupo(cursadas, materia):
 
 
 def modificar_grupo(cursadas, materia=None):
-    if materia is None:
+    if materia == None:
         materia = seleccionar_materia(cursadas)
 
-    if materia is None:
+    if materia == None:
         return cursadas
 
     nombre = seleccionar_grupo(cursadas, materia)
-    if nombre is None:
+    if nombre == None:
         return cursadas
 
     grupo = cursadas[materia][nombre]
@@ -691,7 +691,7 @@ def cargar_datos(archivo=ARCHIVO_DATOS):
         return cursadas, configuracion
 
     finally:
-        if arch is not None:
+        if arch != None:
             try:
                 arch.close()
             except OSError:
@@ -737,7 +737,7 @@ def menu_materias_grupos(cursadas, configuracion):
 
         elif opcion == 5:
             materia = seleccionar_materia(cursadas)
-            if materia is not None:
+            if materia != None:
                 listar_grupos(cursadas, materia)
 
         elif opcion == 6:
@@ -746,10 +746,10 @@ def menu_materias_grupos(cursadas, configuracion):
         elif opcion == 7:
             materia = seleccionar_materia(cursadas)
 
-            if materia is not None:
+            if materia != None:
                 nombre_grupo = seleccionar_grupo(cursadas, materia)
 
-                if nombre_grupo is not None:
+                if nombre_grupo != None:
                     grupo = cursadas[materia][nombre_grupo]
                     grupo["sesiones"], grupo["asistencias"] = menu_sesiones(
                         grupo["sesiones"],
