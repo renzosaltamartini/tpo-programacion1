@@ -6,7 +6,7 @@
 import json
 
 
-ARCHIVO_DATOS = "cursadas.json"
+ARCHIVO_DATOS = "archivos\\cursadas.json"
 
 
 # =========================================
@@ -493,12 +493,6 @@ def crear_sesion(sesiones, asistencias):
         print("Fecha invalida. Formato esperado: DD/MM/AAAA.")
         fecha = input("Ingrese la fecha nuevamente: ")
 
-    materia = input("Ingrese la materia: ")
-
-    while not validar_texto_no_vacio(materia):
-        print("La materia no puede estar vacia.")
-        materia = input("Ingrese la materia nuevamente: ")
-
     tema = input("Ingrese el tema: ")
 
     while not validar_texto_no_vacio(tema):
@@ -506,7 +500,7 @@ def crear_sesion(sesiones, asistencias):
         tema = input("Ingrese el tema nuevamente: ")
 
     # Se arma la nueva sesion y se agrega a la lista de sesiones
-    nueva_sesion = [numero_sesion, fecha, materia, tema]
+    nueva_sesion = [numero_sesion, fecha, tema]
 
     sesiones.append(nueva_sesion)
 
@@ -531,8 +525,7 @@ def listar_sesiones(sesiones):
     for i in range(len(sesiones)):
         print("Numero de sesion:", sesiones[i][0],
               "Fecha:", sesiones[i][1],
-              "Materia:", sesiones[i][2],
-              "Tema:", sesiones[i][3])
+              "Tema:", sesiones[i][2])
 
 
 def buscar_sesion(sesiones, numero_sesion):
@@ -548,8 +541,7 @@ def buscar_sesion(sesiones, numero_sesion):
             print("Sesion encontrada:")
             print("Numero de sesion:", sesiones[i][0])
             print("Fecha:", sesiones[i][1])
-            print("Materia:", sesiones[i][2])
-            print("Tema:", sesiones[i][3])
+            print("Tema:", sesiones[i][2])
 
     if encontrado == False:
         print("No se encontro ninguna sesion con ese numero")
@@ -595,7 +587,7 @@ def menu_sesiones(sesiones, asistencias):
         else:
             print("Opcion invalida. Intentelo de nuevo")
 
-    return sesiones
+    return sesiones, asistencias
 
 
 # =========================================
@@ -638,7 +630,7 @@ def guardar_datos(cursadas, configuracion, archivo=ARCHIVO_DATOS):
         return True
 
     finally:
-        if arch is not None:
+        if arch != None:
             try:
                 arch.close()
             except OSError:
@@ -733,32 +725,45 @@ def menu_materias_grupos(cursadas, configuracion):
 
         if opcion == 1:
             crear_materia(cursadas)
+
         elif opcion == 2:
             listar_materias(cursadas)
+
         elif opcion == 3:
             modificar_materia(cursadas)
+
         elif opcion == 4:
             crear_grupo(cursadas, configuracion)
+
         elif opcion == 5:
-            listar_grupos(cursadas)
-        elif opcion == 6:
-            modificar_grupo(cursadas)
-        elif opcion == 7:
             materia = seleccionar_materia(cursadas)
             if materia is not None:
+                listar_grupos(cursadas, materia)
+
+        elif opcion == 6:
+            modificar_grupo(cursadas)
+
+        elif opcion == 7:
+            materia = seleccionar_materia(cursadas)
+
+            if materia is not None:
                 nombre_grupo = seleccionar_grupo(cursadas, materia)
+
                 if nombre_grupo is not None:
                     grupo = cursadas[materia][nombre_grupo]
                     grupo["sesiones"], grupo["asistencias"] = menu_sesiones(
                         grupo["sesiones"],
                         grupo["asistencias"],
-                        grupo["inscriptos"]
-                    )
+                        )
+                    
                     print("Cantidad de sesiones:", contar_sesiones_recursivo(grupo["sesiones"]))
+        
         elif opcion == 8:
             cambiar_institucion_predeterminada(configuracion)
+        
         elif opcion == 9:
             guardar_datos(cursadas, configuracion)
+        
         elif opcion == 0:
             print("Volviendo al menu principal.")
 

@@ -1,0 +1,11 @@
+diff --git a/Sesiones.py b/Sesiones.py
+index d5236f6..db229b4 100644
+--- a/Sesiones.py
++++ b/Sesiones.py
+@@ -278,4 +278,4 @@ def menu_sesiones(sesiones, asistencias):
+         else:
+             print("Opcion invalida. Intentelo de nuevo")
+ 
+-    return sesiones
++    return sesiones
+\ No newline at end of file
