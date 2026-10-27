@@ -11,13 +11,16 @@ def main():
     matriz_estudiantes=[]
     matriz_asistencias=[]
     matriz_sesiones=[]
-    
-    with open("archivos/matriz_alumnos.txt","r",encoding="utf-8") as estudiantes:
-        for linea in estudiantes:
-            datos = linea.strip().split(",")
-            
-            if len(datos)==2:
-                matriz_estudiantes.append([datos[0],datos[1]])
+
+    try:
+        with open("archivos/matriz_alumnos.txt","r",encoding="utf-8") as estudiantes:
+            for linea in estudiantes:
+                datos = linea.strip().split(",")
+                
+                if len(datos)==2:
+                    matriz_estudiantes.append([datos[0],datos[1]])
+    except OSError:
+        print("Error del sistema, Porfavor contactar con el servicio tecnico")
 
     salida=1
     while salida!=0:
@@ -69,10 +72,12 @@ def main():
         else:
             print("Opcion invalida, intente nuevamente")
 
-        with open("archivos/matriz_alumnos.txt","w",encoding="utf-8") as estudiantes:
-            for estudiante in matriz_estudiantes:
-                estudiantes.write(estudiante[0] + "," + estudiante[1] + "\n")
-            
+        try:
+            with open("archivos/matriz_alumnos.txt","w",encoding="utf-8") as estudiantes:
+                for estudiante in matriz_estudiantes:
+                    estudiantes.write(estudiante[0] + "," + estudiante[1] + "\n")
+        except:
+            print("error del sisetma, contactar con servicio tecnico")
 
 
 
