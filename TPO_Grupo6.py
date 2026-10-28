@@ -16,11 +16,14 @@ def main():
         with open("archivos/matriz_alumnos.txt","r",encoding="utf-8") as estudiantes:
             for linea in estudiantes:
                 datos = linea.strip().split(",")
-                
-                if len(datos)==2:
-                    matriz_estudiantes.append([datos[0],datos[1]])
+
+                if len(datos) >= 2: 
+                    legajo = int(datos[0]) if datos[0].isdigit() else datos[0]
+                    nombre = datos[1]
+                    estado = datos[2] if len(datos) >= 3 else "Activo" ## Modificado por Renzo (Faltaba el estado del alumno)
+                    matriz_estudiantes.append([legajo, nombre, estado]) ## Modificado por Renzo (Faltaba el estado del alumno)
     except OSError:
-        print("Error del sistema, Porfavor contactar con el servicio tecnico")
+        print("Error, contact al servicio tecnico.")
 
     salida=1
     while salida!=0:
@@ -37,7 +40,9 @@ def main():
 
         if salida==1:
             # El menu de estudiantes puede modificar estudiantes y agregar filas a asistencias.
-            matriz_estudiantes,matriz_asistencias=menu_estudiantes(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            matriz_estudiantes = menu_estudiantes(matriz_estudiantes) ## Modificado por Renzo
+            while len(matriz_asistencias) < len(matriz_estudiantes): ## Modificado por Renzo
+                matriz_asistencias.append(["-"] * len(matriz_sesiones)) ## Modificado por Renzo
 
         elif salida ==2:
 
@@ -54,7 +59,7 @@ def main():
                 print()
                 print("No hay estudiantes cargados")
             else:
-                matriz_sesiones=menu_sesiones(matriz_sesiones,matriz_asistencias)
+                matriz_sesiones, matriz_asistencias = menu_sesiones(matriz_sesiones, matriz_asistencias) ## Modificado por Renzo
 
         elif salida==4:
             # Las consultas necesitan que las matrices ya contengan informacion.
@@ -75,9 +80,10 @@ def main():
         try:
             with open("archivos/matriz_alumnos.txt","w",encoding="utf-8") as estudiantes:
                 for estudiante in matriz_estudiantes:
-                    estudiantes.write(estudiante[0] + "," + estudiante[1] + "\n")
+                    estado = estudiante[2] if len(estudiante) > 2 else "Activo" ## Modificado por Renzo
+                    estudiantes.write(f"{estudiante[0]},{estudiante[1]},{estado}\n") ## Modificado por Renzo
         except:
-            print("error del sisetma, contactar con servicio tecnico")
+            print("Error, contacta al servicio tecnico.")
 
 
 

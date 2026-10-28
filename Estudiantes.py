@@ -24,6 +24,8 @@ def registrar_estudiantes(matriz_estudiantes):
         # Se valida que el nombre no esté repetido
         alumno.append(validar_nombre(nombre, matriz_estudiantes))
 
+        alumno.append("Activo") ## Agregado y modificado por Renzo
+
         # Pregunta si se desea seguir cargando más alumnos
         while salida != 1 and salida != 0:
             print()
@@ -48,33 +50,45 @@ def registrar_estudiantes(matriz_estudiantes):
     return matriz_estudiantes
 
 
-def verificacion_legajo(legajo, matriz_estudiantes):
+## def verificacion_legajo(legajo, matriz_estudiantes):
 
     # Verifica que el legajo ingresado sea válido y que no esté repetido
-    salida = 1
-    valido = True
+   ## salida = 1
+   ## valido = True
 
-    if len(matriz_estudiantes) == 0:
-        if legajo > 0:
-            return legajo
-        else:
-            while legajo<=0:
-                legajo=validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
-            return legajo
-    else:
-        while salida != 0:
-            valido = True
+    ##if len(matriz_estudiantes) == 0:
+        ##if legajo > 0:
+          ##  return legajo
+        ##else:
+          ##  while legajo<=0:
+        ##        legajo=validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
+      ##      return legajo
+    ##else:
+  ##      while salida != 0:
+##            valido = True
 
-            for i in range(len(matriz_estudiantes)):
-                if legajo == matriz_estudiantes[i][0] or legajo < 0 or legajo == 0:
-                    print()
-                    legajo = validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
-                    valido = False
+##
+##            for i in range(len(matriz_estudiantes)):
+##                if legajo == matriz_estudiantes[i][0] or legajo < 0 or legajo == 0:
+  ##                  print()
+    ##                legajo = validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
+      ##              valido = False
+##
+  ##          if valido == True:
+    ##            salida = 0
+      ##          return legajo
 
-            if valido == True:
-                salida = 0
-                return legajo
 
+# Funcion creada por Renzo, -> Lo que hace esto es que evita el bucle infinito que habia arriba.
+def verificacion_legajo(legajo, matriz_estudiantes):
+
+    legajos_existentes = [estudiante[0] for estudiante in matriz_estudiantes]
+    
+    while legajo <= 0 or legajo in legajos_existentes:
+        print("\nEl legajo no es válido o ya se encuentra registrado.")
+        legajo = validar_inputs("Ingrese un nuevo legajo: ")
+        
+    return legajo
 
 def validar_nombre(nombre, matriz_estudiantes):
 
