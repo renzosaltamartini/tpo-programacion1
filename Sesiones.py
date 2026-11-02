@@ -18,15 +18,17 @@ def validar_numero(numero):
     if len(numero) == 0:
         return False
 
+    validacion = True 
+
     i = 0
 
     while i < len(numero):
         if numero[i] < "0" or numero[i] > "9":
-            return False 
+            validacion = False 
 
         i += 1
 
-    return True
+    return validacion 
 
 
 def leer_opcion(mensaje, minimo, maximo):
@@ -35,22 +37,26 @@ def leer_opcion(mensaje, minimo, maximo):
             opcion = int(input(mensaje))
 
             if minimo <= opcion <= maximo:
-                return opcion
+                break
             else:
                 print("Opcion invalida. Ingrese un numero entre", minimo, "y", maximo)
 
         except ValueError:
             print("Opcion invalida. Ingrese un numero entero.")
 
+    return opcion
+
 
 def validar_numero_sesion(numero_sesion, sesiones):
     #Devuelve False si existe, si no existe devuelve True
 
+    existe = False 
+
     for i in sesiones:
         if i[0] == numero_sesion:
-            return False 
+            existe = True 
 
-    return True
+    return not existe 
 
 
 def validar_fecha(fecha):
@@ -207,7 +213,7 @@ def seleccionar_materia(cursadas):
     for materia in cursadas:
         materias.append(materia)
 
-    print("\\n--- Seleccionar materia ---")
+    print("\n--- Seleccionar materia ---")
     for i in range(len(materias)):
         print(i + 1, "-", materias[i])
     
@@ -247,11 +253,11 @@ def modificar_materia(cursadas):
 def validar_dia():
     dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
-    dia = normalizar_nombre(ingresar_texto_no_vacio("Ingrese la fecha: "))
+    dia = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el día: "))
 
     while dia not in dias and dia != "Miércoles" and dia != "Sábado":
         print("Dia invalido.")
-        dia = normalizar_nombre(ingresar_texto_no_vacio("Ingrese la fecha: "))
+        dia = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el día: "))
 
     if dia == "Miércoles":
         dia = "Miercoles"
@@ -283,11 +289,11 @@ def registrar_horarios():
         turno = validar_turno()
         horarios[dia] = turno
 
-        respuesta = input("Desea ingresar un usuario? (S/N)")
+        respuesta = input("Desea ingresar un horario? (S/N)")
 
         while respuesta.strip().upper() != "S" and respuesta.strip().upper() != "N":
             print("Responda S o N")
-            respuesta = input("Desea ingresar un usuario? (S/N)")
+            respuesta = input("Desea ingresar un horario? (S/N)")
 
     return horarios
 
@@ -340,7 +346,7 @@ def crear_grupo(cursadas, configuracion, materia=None):
 
 def listar_grupos(cursadas, materia):
     grupos = cursadas[materia]
-    print("\\n--- Grupos de", materia, "---")
+    print("\n--- Grupos de", materia, "---")
 
     if len(grupos) == 0:
         print("Esta materia no tiene grupos.")
@@ -348,7 +354,7 @@ def listar_grupos(cursadas, materia):
 
     for nombre in grupos:
             grupo = grupos[nombre]
-            print("\\nGrupo:", nombre)
+            print("\nGrupo:", nombre)
             print("Institucion:", grupo["institucion"])
     
             if len(grupo["horarios"]) == 0:
@@ -372,7 +378,7 @@ def seleccionar_grupo(cursadas, materia):
     for nombre in grupos:
         nombres.append(nombre)
 
-    print("\\n--- Seleccionar grupo ---")
+    print("\n--- Seleccionar grupo ---")
     for i in range(len(nombres)):
         grupo = grupos[nombres[i]]
         print(i + 1, "-", nombres[i], "| Institucion:", grupo["institucion"])
@@ -397,7 +403,7 @@ def modificar_grupo(cursadas, materia=None):
 
     grupo = cursadas[materia][nombre]
 
-    print("\\n1. Cambiar nombre")
+    print("\n1. Cambiar nombre")
     print("2. Cambiar institucion")
     print("3. Cambiar horarios")
     print("0. Volver")
@@ -487,17 +493,9 @@ def crear_sesion(sesiones, asistencias):
 
         numero_sesion = int(numero_sesion)
 
-    fecha = input("Ingrese la fecha (DD/MM/AAAA): ")
+    fecha = pedir_fecha()
 
-    while not validar_fecha(fecha):
-        print("Fecha invalida. Formato esperado: DD/MM/AAAA.")
-        fecha = input("Ingrese la fecha nuevamente: ")
-
-    tema = input("Ingrese el tema: ")
-
-    while not validar_texto_no_vacio(tema):
-        print("El tema no puede estar vacio.")
-        tema = input("Ingrese el tema nuevamente: ")
+    tema = ingresar_texto_no_vacio("Ingrese el tema: ")
 
     # Se arma la nueva sesion y se agrega a la lista de sesiones
     nueva_sesion = [numero_sesion, fecha, tema]
@@ -562,7 +560,7 @@ def menu_sesiones(sesiones, asistencias):
         print("0. Volver al menu principal")
         print("=========================================")
 
-        opcion = int(input("Seleccione una opcion: "))
+        opcion = leer_opcion("Seleccione una opcion: ")
 
         if opcion == 1:
             asistencias,sesiones = crear_sesion(sesiones, asistencias)
@@ -706,7 +704,7 @@ def menu_materias_grupos(cursadas, configuracion):
     opcion = -1
 
     while opcion != 0:
-        print("\\n=========================================")
+        print("\n=========================================")
         print("       GESTION DE MATERIAS Y GRUPOS")
         print("=========================================")
         print("1. Crear materia")
