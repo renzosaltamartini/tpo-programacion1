@@ -4,14 +4,28 @@
 # =========================================
 
 
-def validar_estado(estado):
+# =========================================
+# FUNCIONES AUXILIARES
+# =========================================
+
+
+def validar_estado(estado, permitir_cancelar=False):
 
     # Convierte el estado a mayuscula y valida que sea una de las opciones permitidas.
     estado = estado.strip().upper()
 
     while estado not in ["P", "A", "T", "J"]:
+
+        if permitir_cancelar and estado == "0":
+            return None
+
         print("Estado incorrecto.")
-        estado = input("Ingrese P, A, T o J: ").strip().upper()
+
+        if permitir_cancelar:
+            estado = input("Ingrese P, A, T o J, o 0 para cancelar: ").strip().upper()
+
+        else:
+            estado = input("Ingrese P, A, T o J: ").strip().upper()
 
     return estado
 
@@ -28,6 +42,23 @@ def validar_si_no(respuesta):
     return respuesta
 
 
+def validar_legajo(legajo):
+
+    # Valida un legajo positivo; el 0 permite cancelar.
+    legajo = legajo.strip()
+
+    while not legajo.isdecimal():
+        print("Legajo inválido.")
+        legajo = input("Ingrese un legajo positivo o 0 para volver: ").strip()
+
+    legajo = int(legajo)
+
+    if legajo == 0:
+        return None
+
+    return legajo
+
+
 def mostrar_estados_asistencia():
 
     # Muestra una referencia de las letras utilizadas para registrar cada estado de asistencia.
@@ -36,6 +67,31 @@ def mostrar_estados_asistencia():
     print("A - Ausente")
     print("T - Tarde")
     print("J - Justificado")
+
+
+def buscar_estudiante(estudiantes, legajo):
+
+    # Busca el legajo y devuelve el nombre del estudiante.
+    for estudiante in estudiantes:
+
+        if estudiante[0] == legajo:
+            return estudiante[1]
+
+    return None
+
+
+def buscar_inscripto(inscriptos, legajo, posicion=0):
+
+    # Si se llega al final, el legajo no esta inscripto.
+    if posicion == len(inscriptos):
+        return -1
+
+    # Si se encuentra el legajo, se devuelve su posicion.
+    if inscriptos[posicion][0] == legajo:
+        return posicion
+
+    # Se busca en la siguiente fila mediante una llamada recursiva.
+    return buscar_inscripto(inscriptos, legajo, posicion + 1)
 
 
 def seleccionar_sesion(matriz_sesiones):
@@ -48,7 +104,7 @@ def seleccionar_sesion(matriz_sesiones):
     print("\nSesiones disponibles:")
 
     for sesion in matriz_sesiones:
-        print(f"{sesion[0]} - {sesion[1]} - {sesion[2]} - {sesion[3]}")
+        print(f"{sesion[0]} - {sesion[1]} - {sesion[2]}")
 
     print("0 - Volver")
 
@@ -71,180 +127,332 @@ def seleccionar_sesion(matriz_sesiones):
         print("Sesión inválida.")
         numero = input("Ingrese un número de sesión válido o 0 para volver: ").strip()
 
-
-def sesion_ya_registrada(matriz_asistencias, posicion_sesion):
-
-    # Si alguna fila de la columna seleccionada tiene un valor distinto de "-",
-    # se considera que la asistencia de esa sesion ya fue tomada.
-    for fila in matriz_asistencias:
-
-        if fila[posicion_sesion] != "-":
-            return True
-
-    return False
+# =========================================
+# GESTION DE INSCRIPCIONES
+# =========================================
 
 
-def hay_estudiantes_activos(matriz_estudiantes):
+def inscribir_estudiante(estudiantes, grupo):
 
-    # Verifica que exista al menos un estudiante activo antes de registrar asistencia.
-    for estudiante in matriz_estudiantes:
+    legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
+    legajo = validar_legajo(legajo)
 
-        if estudiante[2] == "Activo":
-            return True
-
-    return False
-
-
-def buscar_posicion_estudiante(matriz_estudiantes, legajo):
-
-    # Busca un estudiante por legajo y devuelve su posicion dentro de la matriz.
-    for i in range(len(matriz_estudiantes)):
-
-        if matriz_estudiantes[i][0] == legajo:
-            return i
-
-    # Se devuelve -1 cuando el legajo no fue encontrado.
-    return -1
-
-
-def registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
-
-    # Solo se permite registrar asistencia si existe al menos un estudiante activo.
-    if not hay_estudiantes_activos(matriz_estudiantes):
-        print("No hay estudiantes activos para registrar asistencia.")
+    if legajo == None:
         return
 
-    mostrar_estados_asistencia()
+    # El estudiante debe existir en el registro general.
+    nombre = buscar_estudiante(estudiantes, legajo)
 
-    posicion_sesion = seleccionar_sesion(matriz_sesiones)
+    if nombre == None:
+        print("Estudiante no encontrado en el registro general.")
+        return
+
+    # Se comprueba si ya tiene una inscripcion en este grupo.
+    posicion = buscar_inscripto(grupo["inscriptos"], legajo)
+
+    if posicion != -1:
+        print("El estudiante ya está inscripto en este grupo.")
+        return
+
+    print("\nEstudiante:", nombre)
+
+    respuesta = input("¿Confirma la inscripción? (S/N): ")
+    respuesta = validar_si_no(respuesta)
+
+    if respuesta == "N":
+        print("Inscripción cancelada.")
+        return
+
+    # Se prepara una fila con un pendiente por cada sesion existente.
+    fila_asistencias = []
+
+    for sesion in grupo["sesiones"]:
+        fila_asistencias.append("-")
+
+    # La inscripcion y su fila se agregan en la misma posicion.
+    grupo["inscriptos"].append([legajo, "Activo"])
+    grupo["asistencias"].append(fila_asistencias)
+
+    print("Estudiante inscripto correctamente.")
+
+
+def dar_baja_inscripcion(grupo):
+
+    legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
+    legajo = validar_legajo(legajo)
+
+    if legajo == None:
+        return
+
+    posicion = buscar_inscripto(grupo["inscriptos"], legajo)
+
+    if posicion == -1:
+        print("El estudiante no está inscripto en este grupo.")
+        return
+
+    if grupo["inscriptos"][posicion][1] == "Inactivo":
+        print("La inscripción ya está inactiva.")
+        return
+
+    respuesta = input("¿Confirma la baja? (S/N): ")
+    respuesta = validar_si_no(respuesta)
+
+    if respuesta == "N":
+        print("Baja cancelada.")
+        return
+
+    grupo["inscriptos"][posicion][1] = "Inactivo"
+
+    print("Inscripción dada de baja correctamente.")
+
+
+def reactivar_inscripcion(grupo):
+
+    legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
+    legajo = validar_legajo(legajo)
+
+    if legajo == None:
+        return
+
+    posicion = buscar_inscripto(grupo["inscriptos"], legajo)
+
+    if posicion == -1:
+        print("El estudiante no está inscripto en este grupo.")
+        return
+
+    if grupo["inscriptos"][posicion][1] == "Activo":
+        print("La inscripción ya está activa.")
+        return
+
+    grupo["inscriptos"][posicion][1] = "Activo"
+
+    print("Inscripción reactivada correctamente.")
+
+
+def mostrar_inscriptos(estudiantes, grupo):
+
+    if len(grupo["inscriptos"]) == 0:
+        print("No hay estudiantes inscriptos en este grupo.")
+        return
+
+    print("\n===== INSCRIPTOS DEL GRUPO =====\n")
+    print(f"{'Legajo':<10}{'Nombre':<25}{'Estado':<12}")
+
+    for inscripto in grupo["inscriptos"]:
+
+        legajo = inscripto[0]
+        nombre = buscar_estudiante(estudiantes, legajo)
+        estado = inscripto[1]
+
+        print(f"{legajo:<10}{nombre:<25}{estado:<12}")
+
+
+def menu_inscripciones(estudiantes, grupo):
+
+    # Menu independiente para gestionar las inscripciones del grupo seleccionado.
+    opcion = ""
+
+    while opcion != "0":
+
+        print("\n===== GESTIÓN DE INSCRIPCIONES =====")
+        print("1. Inscribir estudiante")
+        print("2. Dar de baja una inscripción")
+        print("3. Reactivar una inscripción")
+        print("4. Mostrar inscriptos")
+        print("0. Volver")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            inscribir_estudiante(estudiantes, grupo)
+
+        elif opcion == "2":
+
+            dar_baja_inscripcion(grupo)
+
+        elif opcion == "3":
+
+            reactivar_inscripcion(grupo)
+
+        elif opcion == "4":
+
+            mostrar_inscriptos(estudiantes, grupo)
+
+        elif opcion == "0":
+
+            print("Volviendo al menú principal...")
+
+        else:
+
+            print("Opción inválida.")
+
+    return grupo
+
+# =========================================
+# GESTION DE ASISTENCIAS
+# =========================================
+
+
+def registrar_asistencia(estudiantes, grupo):
+
+    if len(grupo["sesiones"]) == 0:
+        print("No hay sesiones registradas.")
+        return
+
+    if len(grupo["inscriptos"]) == 0:
+        print("No hay estudiantes inscriptos en este grupo.")
+        return
+
+    posicion_sesion = seleccionar_sesion(grupo["sesiones"])
 
     if posicion_sesion == None:
         return
 
-    # No se vuelve a cargar una sesion que ya tenga asistencias registradas.
-    if sesion_ya_registrada(matriz_asistencias, posicion_sesion):
-        print("La asistencia de esta sesión ya fue registrada.")
-        print("Utilice la opción modificar asistencia.")
+    mostrar_estados_asistencia()
+
+    print("\n===== REGISTRO DE ASISTENCIA =====")
+
+    cantidad_registradas = 0
+
+    for i in range(len(grupo["inscriptos"])):
+
+        # Solo se registran pendientes de inscriptos activos.
+        if grupo["inscriptos"][i][1] == "Activo":
+
+            if grupo["asistencias"][i][posicion_sesion] == "-":
+
+                legajo = grupo["inscriptos"][i][0]
+                nombre = buscar_estudiante(estudiantes, legajo)
+
+                print("\nLegajo:", legajo)
+                print("Estudiante:", nombre)
+
+                estado = input("Ingrese P, A, T o J, o 0 para cancelar: ")
+                estado = validar_estado(estado, permitir_cancelar=True)
+
+                if estado == None:
+                    print("Registro cancelado. Las asistencias ya cargadas se conservan.")
+                    return
+
+                grupo["asistencias"][i][posicion_sesion] = estado
+                cantidad_registradas += 1
+
+    if cantidad_registradas > 0:
+        print("\nAsistencias pendientes registradas correctamente.")
 
     else:
-
-        print("\n===== REGISTRO DE ASISTENCIA =====")
-
-        # Se recorre la matriz de estudiantes y se registra solamente a los activos.
-        for i in range(len(matriz_estudiantes)):
-
-            if matriz_estudiantes[i][2] == "Activo":
-
-                print("\nEstudiante:", matriz_estudiantes[i][1])
-
-                estado = input("Ingrese P, A, T o J: ")
-                estado = validar_estado(estado)
-
-                # La fila coincide con el estudiante y la columna con la sesion seleccionada.
-                matriz_asistencias[i][posicion_sesion] = estado
-
-        print("\nAsistencia registrada correctamente.")
+        print("\nNo hay asistencias pendientes de inscriptos activos para esta sesión.")
 
 
-def modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def modificar_asistencia(estudiantes, grupo):
 
-    # Permite corregir una asistencia ya cargada buscando primero al estudiante por legajo.
+    if len(grupo["sesiones"]) == 0:
+        print("No hay sesiones registradas.")
+        return
+
+    if len(grupo["inscriptos"]) == 0:
+        print("No hay estudiantes inscriptos en este grupo.")
+        return
+
     mostrar_estados_asistencia()
 
     continuar = "S"
 
     while continuar == "S":
 
-        legajo = input("\nIngrese el legajo del estudiante (0 para volver): ").strip()
+        legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
+        legajo = validar_legajo(legajo)
 
-        # Se valida que el legajo ingresado contenga solamente numeros.
-        while not legajo.isdigit():
-            print("Legajo inválido.")
-            legajo = input("Ingrese un legajo válido o 0 para volver: ").strip()
-
-        if legajo == "0":
+        if legajo == None:
             return
 
-        legajo = int(legajo)
-
-        posicion_estudiante = buscar_posicion_estudiante(matriz_estudiantes, legajo)
+        posicion_estudiante = buscar_inscripto(grupo["inscriptos"], legajo)
 
         if posicion_estudiante == -1:
-            print("Estudiante no encontrado.")
+            print("El estudiante no está inscripto en este grupo.")
 
         else:
 
-            posicion_sesion = seleccionar_sesion(matriz_sesiones)
+            posicion_sesion = seleccionar_sesion(grupo["sesiones"])
 
             if posicion_sesion == None:
                 return
 
-            estado_actual = matriz_asistencias[posicion_estudiante][posicion_sesion]
+            nombre = buscar_estudiante(estudiantes, legajo)
+            estado_actual = grupo["asistencias"][posicion_estudiante][posicion_sesion]
 
-            # El guion indica que para ese estudiante y sesion todavia no hay asistencia cargada.
+            print("\nEstudiante:", nombre)
+            print("Estado actual:", estado_actual)
+
             if estado_actual == "-":
-                print("No hay una asistencia registrada para modificar.")
+                print("La asistencia está pendiente de registrar.")
 
-            else:
+            nuevo_estado = input("Ingrese P, A, T o J, o 0 para cancelar: ").strip()
 
-                print("\nEstudiante:", matriz_estudiantes[posicion_estudiante][1])
-                print("Estado actual:", estado_actual)
+            if nuevo_estado == "0":
+                print("Modificación cancelada.")
+                return
 
-                nuevo_estado = input("Ingrese el nuevo estado (P, A, T o J) o 0 para cancelar: ").strip()
+            nuevo_estado = validar_estado(nuevo_estado, permitir_cancelar=True)
 
-                if nuevo_estado == "0":
-                    print("Modificación cancelada.")
-                    return
+            if nuevo_estado == None:
+                print("Modificación cancelada.")
+                return
 
-                nuevo_estado = validar_estado(nuevo_estado)
+            # Se modifica solamente la asistencia seleccionada.
+            grupo["asistencias"][posicion_estudiante][posicion_sesion] = nuevo_estado
 
-                # Se reemplaza solamente el estado ubicado en la fila y columna seleccionadas.
-                matriz_asistencias[posicion_estudiante][posicion_sesion] = nuevo_estado
-
-                print("Asistencia modificada correctamente.")
+            print("Asistencia modificada correctamente.")
 
         continuar = input("\n¿Desea modificar otra asistencia? (S/N): ")
         continuar = validar_si_no(continuar)
 
 
-def mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def mostrar_planilla_general(estudiantes, grupo):
 
-    # Para mostrar la planilla deben existir estudiantes y sesiones cargadas.
-    if len(matriz_estudiantes) == 0:
-        print("No hay estudiantes registrados.")
+    # Para mostrar la planilla deben existir inscriptos y sesiones cargadas.
+    if len(grupo["inscriptos"]) == 0:
+        print("No hay estudiantes inscriptos en este grupo.")
         return
 
-    if len(matriz_sesiones) == 0:
+    if len(grupo["sesiones"]) == 0:
         print("No hay sesiones registradas.")
         return
 
     print("\n===== PLANILLA GENERAL =====\n")
 
-    # Se imprimen primero las columnas fijas de legajo y nombre.
-    print(f"{'Legajo':<10}{'Nombre':<25}", end="")
+    # Se imprimen primero las columnas fijas de legajo, nombre y estado de inscripcion.
+    print(f"{'Legajo':<10}{'Nombre':<25}{'Estado':<12}", end="")
 
     # Cada sesion se agrega como una columna de la planilla.
-    for sesion in matriz_sesiones:
+    for sesion in grupo["sesiones"]:
 
         titulo_sesion = "S" + str(sesion[0])
         print(f"{titulo_sesion:^8}", end="")
 
     print()
 
-    # Cada fila corresponde a un estudiante y muestra sus estados por sesion.
-    for i in range(len(matriz_estudiantes)):
+    # Se muestran todos los inscriptos, incluidos los inactivos.
+    for i in range(len(grupo["inscriptos"])):
 
-        print(f"{matriz_estudiantes[i][0]:<10}{matriz_estudiantes[i][1]:<25}", end="")
+        legajo = grupo["inscriptos"][i][0]
+        nombre = buscar_estudiante(estudiantes, legajo)
+        estado_inscripcion = grupo["inscriptos"][i][1]
 
-        for j in range(len(matriz_sesiones)):
+        print(f"{legajo:<10}{nombre:<25}{estado_inscripcion:<12}", end="")
 
-            estado = matriz_asistencias[i][j]
+        for j in range(len(grupo["sesiones"])):
+
+            estado = grupo["asistencias"][i][j]
             print(f"{estado:^8}", end="")
 
         print()
 
+    print("\n- : asistencia sin registrar.")
 
-def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+
+def menu_asistencias(estudiantes, grupo):
 
     # Menu principal del modulo de asistencias.
     opcion = ""
@@ -261,15 +469,15 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
         if opcion == "1":
 
-            registrar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            registrar_asistencia(estudiantes, grupo)
 
         elif opcion == "2":
 
-            modificar_asistencia(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            modificar_asistencia(estudiantes, grupo)
 
         elif opcion == "3":
 
-            mostrar_planilla_general(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            mostrar_planilla_general(estudiantes, grupo)
 
         elif opcion == "0":
 
@@ -279,4 +487,4 @@ def menu_asistencias(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
 
             print("Opción inválida.")
 
-    return matriz_asistencias
+    return grupo
