@@ -1,10 +1,12 @@
+from Asistencias import menu_inscripciones
+from Sesiones import seleccionar_materia, seleccionar_grupo
+
+
 def registrar_estudiantes(matriz_estudiantes):
 
     # Permite cargar uno o varios estudiantes nuevos hasta que el usuario decida no continuar
     salida = 3
     alumno = []
-    estado = 0
-    estado_add = ""
 
     generar_titulo_de_todos("REGISTRO DE ESTUDIANTE")
 
@@ -21,10 +23,8 @@ def registrar_estudiantes(matriz_estudiantes):
 
         nombre = input("Ingrese el nombre completo del estudiante: ")
 
-        # Se valida que el nombre no esté repetido
+        # Se valida que el nombre contenga letras y espacios
         alumno.append(validar_nombre(nombre, matriz_estudiantes))
-
-        alumno.append("Activo") ## Agregado y modificado por Renzo
 
         # Pregunta si se desea seguir cargando más alumnos
         while salida != 1 and salida != 0:
@@ -50,36 +50,6 @@ def registrar_estudiantes(matriz_estudiantes):
     return matriz_estudiantes
 
 
-## def verificacion_legajo(legajo, matriz_estudiantes):
-
-    # Verifica que el legajo ingresado sea válido y que no esté repetido
-   ## salida = 1
-   ## valido = True
-
-    ##if len(matriz_estudiantes) == 0:
-        ##if legajo > 0:
-          ##  return legajo
-        ##else:
-          ##  while legajo<=0:
-        ##        legajo=validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
-      ##      return legajo
-    ##else:
-  ##      while salida != 0:
-##            valido = True
-
-##
-##            for i in range(len(matriz_estudiantes)):
-##                if legajo == matriz_estudiantes[i][0] or legajo < 0 or legajo == 0:
-  ##                  print()
-    ##                legajo = validar_inputs("El legajo no es válido. Ingrese uno nuevo: ")
-      ##              valido = False
-##
-  ##          if valido == True:
-    ##            salida = 0
-      ##          return legajo
-
-
-# Funcion creada por Renzo, -> Lo que hace esto es que evita el bucle infinito que habia arriba.
 def verificacion_legajo(legajo, matriz_estudiantes):
 
     legajos_existentes = [estudiante[0] for estudiante in matriz_estudiantes]
@@ -90,9 +60,10 @@ def verificacion_legajo(legajo, matriz_estudiantes):
         
     return legajo
 
+
 def validar_nombre(nombre, matriz_estudiantes):
 
-    # Verifica que el nombre no esté repetido y que solo contenga letras
+    # Valida letras y espacios. Dos estudiantes pueden tener el mismo nombre.
     salida = 1
     valido = True
 
@@ -103,7 +74,7 @@ def validar_nombre(nombre, matriz_estudiantes):
                 "El nombre no es válido. Ingrese nuevamente el nombre: "
             )
 
-        return nombre
+        return nombre.strip()
 
     else:
         while salida != 0:
@@ -121,7 +92,7 @@ def validar_nombre(nombre, matriz_estudiantes):
             if valido == True:
                 salida = 0
 
-    return nombre
+    return nombre.strip()
 
 
 def buscar_estudiantes(matriz_estudiantes):
@@ -144,10 +115,11 @@ def buscar_estudiantes(matriz_estudiantes):
         print()
         print("  1. Por nombre")
         print("  2. Por legajo")
+        print("  0. Volver")
 
         opcion = validar_inputs("\nSeleccione una opción: ")
 
-        while opcion != 1 and opcion != 2:
+        while opcion != 0 and opcion != 1 and opcion != 2:
             print()
             print("Opción inválida. Intente nuevamente.")
             print()
@@ -155,12 +127,19 @@ def buscar_estudiantes(matriz_estudiantes):
             print()
             print("  1. Por nombre")
             print("  2. Por legajo")
+            print("  0. Volver")
 
             opcion = validar_inputs("\nSeleccione una opción: ")
 
+        if opcion == 0:
+            return
+
         if opcion == 1:
             print()
-            nombre = input("Ingrese el nombre o apellido del alumno: ")
+            nombre = input("Ingrese el nombre o apellido del alumno (0 para volver): ").strip()
+
+            if nombre == "0":
+                return
 
             alumnos = buscar_nombre(matriz_estudiantes, nombre)
 
@@ -170,7 +149,10 @@ def buscar_estudiantes(matriz_estudiantes):
                 print("Intente nuevamente.")
 
                 print()
-                nombre = input("Ingrese el nombre o apellido del alumno: ")
+                nombre = input("Ingrese el nombre o apellido del alumno (0 para volver): ").strip()
+
+                if nombre == "0":
+                    return
 
                 alumnos = buscar_nombre(matriz_estudiantes, nombre)
 
@@ -193,7 +175,10 @@ def buscar_estudiantes(matriz_estudiantes):
 
             while len(alumnos) == 0:
                 print()
-                legajo = validar_inputs("Ingrese el legajo del alumno: ")
+                legajo = validar_inputs("Ingrese el legajo del alumno (0 para volver): ")
+
+                if legajo == 0:
+                    return
 
                 alumnos = buscar_legajo(matriz_estudiantes, legajo)
 
@@ -236,6 +221,9 @@ def buscar_nombre(matriz, nombre):
 
     alumnos = []
 
+    if len(nombre.strip()) == 0:
+        return alumnos
+
     nombre = nombre.lower()
     nombre = nombre.replace(" ", "")
 
@@ -249,7 +237,7 @@ def buscar_nombre(matriz, nombre):
 
 def modificar_nombre_estudiantes(matriz_estudiantes):
 
-    # Permite modificar el nombre o el estado de un alumno
+    # Permite modificar el nombre de un alumno
     generar_titulo_de_todos("MODIFICAR NOMBRE ESTUDIANTE")
 
     buscar = 0
@@ -265,7 +253,10 @@ def modificar_nombre_estudiantes(matriz_estudiantes):
 
     else:
         print()
-        buscar = validar_inputs("Ingrese el legajo del alumno: ")
+        buscar = validar_inputs("Ingrese el legajo del alumno (0 para volver): ")
+
+        if buscar == 0:
+            return matriz_estudiantes
 
         for i in range(len(matriz_estudiantes)):
 
@@ -278,8 +269,12 @@ def modificar_nombre_estudiantes(matriz_estudiantes):
                     print("Opciones a modificar:")
                     print()
                     print("  1. Nombre")
+                    print("  0. Volver")
 
                     opcion = validar_inputs("\nSeleccione una opción: ")
+
+                    if opcion == 0:
+                        return matriz_estudiantes
 
                     if opcion == 1:
                         print()
@@ -330,6 +325,7 @@ def mostrar_estudiantes(matriz_estudiantes):
         print("-" * 50)
         print()
 
+
 def generar_titulo_de_todos(titulo):
 
     print()
@@ -338,6 +334,7 @@ def generar_titulo_de_todos(titulo):
     print("=" * 50)
 
     return
+
 
 def imprimir_la_matriz(matriz_estudiantes):
     print()
@@ -365,7 +362,7 @@ def validar_inputs(Texto):
     return variable
 
 
-def menu_estudiantes(matriz_estudiantes):
+def menu_estudiantes(matriz_estudiantes, cursadas=None):
 
     # Función principal del menú de estudiantes
     salida = -1
@@ -381,6 +378,7 @@ def menu_estudiantes(matriz_estudiantes):
         print("  3. Modificar nombre de estudiante")
         print("  4. Mostrar estudiantes")
         print("  5. Volver al menú principal")
+        print("  6. Gestionar inscripciones en un grupo")
         print()
 
         opcion = validar_inputs("Seleccione una opcion: ")
@@ -399,6 +397,21 @@ def menu_estudiantes(matriz_estudiantes):
 
         elif opcion == 5:
             salida = 0
+
+        elif opcion == 6:
+
+            if cursadas == None:
+                print("Las inscripciones se abren desde el programa principal.")
+
+            else:
+                materia = seleccionar_materia(cursadas)
+
+                if materia != None:
+                    nombre_grupo = seleccionar_grupo(cursadas, materia)
+
+                    if nombre_grupo != None:
+                        grupo = cursadas[materia][nombre_grupo]
+                        menu_inscripciones(matriz_estudiantes, grupo)
 
         else:
             print()
