@@ -23,28 +23,29 @@ def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias
         except ValueError:
             print("Entrada inválida. Debe ingresar un número entero.")
 
-    posicion = -1
+    # Los alumnos del grupo y las filas de asistencia siguen el orden de inscripción.
+    posicion_inscripto = -1
     for i in range(len(matriz_estudiantes)):
         if str(legajo) == str(matriz_estudiantes[i][0]):
-            posicion = i
+            posicion_inscripto = i
             break
 
-    if posicion == -1:
+    if posicion_inscripto == -1:
         print("El legajo no está cargado")
         return
 
     # Se obtienen los datos generales asegurando la tercera columna (estado)
-    estado_alumno = matriz_estudiantes[posicion][2] if len(matriz_estudiantes[posicion]) > 2 else "Activo"
+    estado_alumno = matriz_estudiantes[posicion_inscripto][2] if len(matriz_estudiantes[posicion_inscripto]) > 2 else "Activo"
 
     print("===== DATOS DEL ESTUDIANTE =====")
-    print(f"Legajo: {matriz_estudiantes[posicion][0]}\nNombre: {matriz_estudiantes[posicion][1]}\nEstado: {estado_alumno}")
+    print(f"Legajo: {matriz_estudiantes[posicion_inscripto][0]}\nNombre: {matriz_estudiantes[posicion_inscripto][1]}\nEstado: {estado_alumno}")
 
     for i in range(len(matriz_sesiones)):
-        print(f"Sesion: {matriz_sesiones[i][0]}\nMateria: {matriz_sesiones[i][2]}")
+        print(f"Sesion: {matriz_sesiones[i][0]}\nTema: {matriz_sesiones[i][2]}")
         asistencia = "Nula"
 
-        if i < len(matriz_asistencias[posicion]):
-            estado_asist = matriz_asistencias[posicion][i]
+        if i < len(matriz_asistencias[posicion_inscripto]):
+            estado_asist = matriz_asistencias[posicion_inscripto][i]
             if estado_asist == "A":
                 asistencia = "Ausente"
             elif estado_asist == "P":
@@ -84,11 +85,11 @@ def consultar_sesion(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         return
 
     print(f"==== SESION: {sesion} ====")
-    for i in range(len(matriz_estudiantes)):
+    for posicion_inscripto in range(len(matriz_estudiantes)):
         estado = "-"
-        if posicion_sesion < len(matriz_asistencias[i]):
-            estado = matriz_asistencias[i][posicion_sesion]
-        print(f"Nombre: {matriz_estudiantes[i][1]}\nAsistencia: {estado}")
+        if posicion_sesion < len(matriz_asistencias[posicion_inscripto]):
+            estado = matriz_asistencias[posicion_inscripto][posicion_sesion]
+        print(f"Nombre: {matriz_estudiantes[posicion_inscripto][1]}\nAsistencia: {estado}")
 
 
 def calcular_porcentaje(matriz_asistencias, i):
@@ -100,7 +101,7 @@ def calcular_porcentaje(matriz_asistencias, i):
     presentes = contar_estado(matriz_asistencias[i], "P")
     total_clases = len(matriz_asistencias[i])
 
-    pct = (presentes / total_clases) * 100
+    pct = presentes * 100 / total_clases
     return pct
 
 
@@ -115,19 +116,19 @@ def mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_asistencias):
     while True:
         try:
             pct_de_asistencia = float(input("Ingrese el limite de porcentaje de asistencia (ej: 75.0): "))
-            if pct_de_asistencia <= 0 or pct_de_asistencia > 100:
-                print("El porcentaje debe ser un valor entre 1 y 100.")
-            else:
+            if 0 < pct_de_asistencia <= 100:
                 break
+            else:
+                print("El porcentaje debe ser mayor que 0 y como máximo 100.")
         except ValueError:
             print("Debe ingresar un número decimal válido.")
 
-    for i in range(len(matriz_estudiantes)):
-        porcentaje = calcular_porcentaje(matriz_asistencias, i)
-        if porcentaje <= pct_de_asistencia:
+    for posicion_inscripto in range(len(matriz_estudiantes)):
+        porcentaje = calcular_porcentaje(matriz_asistencias, posicion_inscripto)
+        if porcentaje < pct_de_asistencia:
             alumnos_en_riesgo = True
             print("==== ALUMNO DEBAJO DEL LIMITE ====")
-            print(f"Nombre: {matriz_estudiantes[i][1]}\nLegajo: {matriz_estudiantes[i][0]}\nPorcentaje: {porcentaje:.2f}%")
+            print(f"Nombre: {matriz_estudiantes[posicion_inscripto][1]}\nLegajo: {matriz_estudiantes[posicion_inscripto][0]}\nPorcentaje: {porcentaje:.2f}%")
 
     if not alumnos_en_riesgo:
         print(f"No hay alumnos con menos del {pct_de_asistencia}%")
