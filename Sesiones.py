@@ -6,7 +6,7 @@
 import json
 
 
-ARCHIVO_DATOS = "archivos\\cursadas.json"
+ARCHIVO_DATOS = "archivos/cursadas.json"
 
 
 # =========================================
@@ -460,7 +460,7 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
 
 
 def verificar_dimensiones_matriz(asistencias, sesiones):
-
+    # Comprueba que cada fila tenga una columna por cada sesion.
     ok = True
 
     for i in range(len(asistencias)):
@@ -506,7 +506,8 @@ def crear_sesion(sesiones, asistencias):
     agregar_columna_asistencia(asistencias)
 
     # Chequeo de que la matriz sigue teniendo las dimensiones correctas
-    verificar_dimensiones_matriz(asistencias, sesiones)
+    if not verificar_dimensiones_matriz(asistencias, sesiones):
+        print("Error: la matriz de asistencias tiene dimensiones incorrectas.")
 
     return asistencias, sesiones
 
@@ -560,7 +561,7 @@ def menu_sesiones(sesiones, asistencias):
         print("0. Volver al menu principal")
         print("=========================================")
 
-        opcion = leer_opcion("Seleccione una opcion: ")
+        opcion = leer_opcion("Seleccione una opcion: ", 0, 3)
 
         if opcion == 1:
             asistencias,sesiones = crear_sesion(sesiones, asistencias)
@@ -642,6 +643,9 @@ def cargar_datos(archivo=ARCHIVO_DATOS):
         arch = open(archivo, "r", encoding="utf-8")
         datos = json.load(arch)
 
+        if not isinstance(datos, dict):
+            raise ValueError("El contenido del archivo no tiene el formato esperado.")
+
         if "cursadas" not in datos or "configuracion" not in datos:
             raise ValueError("El archivo no contiene las claves necesarias.")
 
@@ -650,6 +654,30 @@ def cargar_datos(archivo=ARCHIVO_DATOS):
 
         if not isinstance(datos["configuracion"], dict):
             raise ValueError("La configuracion no tiene el formato esperado.")
+
+        # Verifica la estructura de materias y grupos antes de recorrerlos.
+        for materia, grupos in datos["cursadas"].items():
+            if not isinstance(materia, str) or not isinstance(grupos, dict):
+                raise ValueError("Una materia o sus grupos tienen un formato incorrecto.")
+
+            for nombre_grupo, grupo in grupos.items():
+                if not isinstance(nombre_grupo, str) or not isinstance(grupo, dict):
+                    raise ValueError("Un grupo tiene un formato incorrecto.")
+
+                if "institucion" in grupo and not isinstance(grupo["institucion"], str):
+                    raise ValueError("La institucion de un grupo tiene un formato incorrecto.")
+                if "horarios" in grupo and not isinstance(grupo["horarios"], dict):
+                    raise ValueError("Los horarios de un grupo tienen un formato incorrecto.")
+                if "inscriptos" in grupo and not isinstance(grupo["inscriptos"], list):
+                    raise ValueError("Los inscriptos de un grupo tienen un formato incorrecto.")
+                if "sesiones" in grupo and not isinstance(grupo["sesiones"], list):
+                    raise ValueError("Las sesiones de un grupo tienen un formato incorrecto.")
+                if "asistencias" in grupo and not isinstance(grupo["asistencias"], list):
+                    raise ValueError("Las asistencias de un grupo tienen un formato incorrecto.")
+
+        if ("institucion_predeterminada" in datos["configuracion"]
+                and not isinstance(datos["configuracion"]["institucion_predeterminada"], str)):
+            raise ValueError("La institucion predeterminada tiene un formato incorrecto.")
 
     except FileNotFoundError:
         print("Todavia no existe un archivo guardado. Se iniciara sin datos.")
