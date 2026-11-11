@@ -160,10 +160,10 @@ def normalizar_nombre(texto):
 
 
 def pedir_fecha():
-    fecha = input("Ingrese la fecha (DD/MM/AAAA): ")
+    fecha = input("Ingrese la fecha (DD/MM/AAAA): ").strip()
     while not validar_fecha(fecha):
         print("Fecha invalida. Formato esperado: DD/MM/AAAA.")
-        fecha = input("Ingrese la fecha nuevamente: ")
+        fecha = input("Ingrese la fecha nuevamente: ").strip()
     return fecha
 
 
@@ -451,29 +451,42 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
     # Agrega una fila nueva (nuevo estudiante),
     # con una columna por cada sesion existente.
 
+    if not isinstance(cantidad_sesiones, int) or cantidad_sesiones < 0:
+        print("La cantidad de sesiones debe ser un entero mayor o igual a cero.")
+        return False
+
     fila_nueva = []
 
     for i in range(cantidad_sesiones):
         fila_nueva.append("-")
 
     asistencias.append(fila_nueva)
+    return True
 
 
 def verificar_dimensiones_matriz(asistencias, sesiones):
     # Comprueba que cada fila tenga una columna por cada sesion.
-    ok = True
+    if not isinstance(asistencias, list) or not isinstance(sesiones, list):
+        print("Aviso: las sesiones y asistencias deben estar organizadas en listas.")
+        return False
 
     for i in range(len(asistencias)):
 
-        if len(asistencias[i]) != len(sesiones):
+        if not isinstance(asistencias[i], list) or len(asistencias[i]) != len(sesiones):
             print("Aviso: una fila de asistencias no tiene la cantidad correcta de columnas.")
-            ok = False
+            return False
 
-    return ok
+    return True
 
 def crear_sesion(sesiones, asistencias):
 
     print("\n--- Crear nueva sesion ---")
+
+    # No se agrega una sesion si la matriz ya esta desincronizada: hacerlo
+    # aumentaria el error y podria asociar asistencias con otra sesion.
+    if not verificar_dimensiones_matriz(asistencias, sesiones):
+        print("No se puede crear la sesion hasta corregir la matriz de asistencias.")
+        return asistencias, sesiones
 
     numero_sesion = input("Ingrese el numero de sesion: ")
 
@@ -485,13 +498,13 @@ def crear_sesion(sesiones, asistencias):
 
     while not validar_numero_sesion(numero_sesion, sesiones):
         print("Ese numero de sesion ya existe.")
-        numero_sesion = input("Ingrese un numero de sesion distinto: ")
+        numero_ingresado = input("Ingrese un numero de sesion distinto: ")
 
-        while not validar_numero(numero_sesion) or int(numero_sesion) <= 0:
+        while not validar_numero(numero_ingresado) or int(numero_ingresado) <= 0:
             print("El numero de sesion debe ser un numero mayor a 0.")
-            numero_sesion = input("Ingrese el numero de sesion: ")
+            numero_ingresado = input("Ingrese el numero de sesion: ")
 
-        numero_sesion = int(numero_sesion)
+        numero_sesion = int(numero_ingresado)
 
     fecha = pedir_fecha()
 
@@ -541,9 +554,12 @@ def buscar_sesion(sesiones, numero_sesion):
             print("Numero de sesion:", sesiones[i][0])
             print("Fecha:", sesiones[i][1])
             print("Tema:", sesiones[i][2])
+            return sesiones[i]
 
-    if encontrado == False:
+    if not encontrado:
         print("No se encontro ninguna sesion con ese numero")
+
+    return None
 
 
 def menu_sesiones(sesiones, asistencias):
@@ -570,6 +586,11 @@ def menu_sesiones(sesiones, asistencias):
             listar_sesiones(sesiones)
 
         elif opcion == 3:
+            if len(sesiones) == 0:
+                print("No hay sesiones cargadas.")
+                continue
+
+            print("Ingrese 0 para volver.")
             numero_sesion = input("Ingrese el numero de sesion: ")
 
             while not validar_numero(numero_sesion):
@@ -578,7 +599,8 @@ def menu_sesiones(sesiones, asistencias):
 
             numero_sesion = int(numero_sesion)
 
-            buscar_sesion(sesiones, numero_sesion)
+            if numero_sesion != 0:
+                buscar_sesion(sesiones, numero_sesion)
 
         elif opcion == 0:
             print("Volviendo al menu principal")
