@@ -235,6 +235,44 @@ def buscar_nombre(matriz, nombre):
     return alumnos
 
 
+def elegir_busqueda_estudiante():
+    print("1. Buscar por nombre")
+    print("2. Buscar por legajo")
+    print("0. Volver")
+
+    opcion = validar_inputs("Seleccione una opción: ")
+    while opcion not in (0, 1, 2):
+        print("Opción inválida.")
+        opcion = validar_inputs("Seleccione una opción: ")
+    return opcion
+
+
+def seleccionar_estudiante_por_nombre(matriz_estudiantes):
+    nombre = input("Ingrese el nombre o apellido del estudiante (0 para volver): ").strip()
+    if nombre == "0":
+        return None
+
+    coincidencias = buscar_nombre(matriz_estudiantes, nombre)
+    if not coincidencias:
+        print("No se encontró ningún estudiante con ese nombre.")
+        return None
+
+    if len(coincidencias) == 1:
+        return coincidencias[0]
+
+    for numero, posicion in enumerate(coincidencias, start=1):
+        legajo, nombre = matriz_estudiantes[posicion][:2]
+        print(f"{numero}. {nombre} (legajo {legajo})")
+
+    while True:
+        opcion = validar_inputs("Seleccione un estudiante (0 para volver): ")
+        if opcion == 0:
+            return None
+        if 1 <= opcion <= len(coincidencias):
+            return coincidencias[opcion - 1]
+        print("Opción inválida.")
+
+
 def modificar_nombre_estudiantes(matriz_estudiantes):
 
     # Permite modificar el nombre de un alumno

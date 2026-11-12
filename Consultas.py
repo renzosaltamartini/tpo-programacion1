@@ -1,3 +1,6 @@
+from Estudiantes import elegir_busqueda_estudiante, seleccionar_estudiante_por_nombre
+
+
 def contar_estado(lista, tipo):
     contador = 0
     for i in lista:
@@ -12,27 +15,33 @@ def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias
         print("No hay alumnos cargados")
         return
     
-    # Se solicita el legajo y se valida que sea numérico y mayor a cero
-    while True:
-        try:
-            legajo = int(input("Ingrese el legajo que quiere buscar: "))
-            if legajo <= 0:
-                print("El legajo no puede ser negativo o cero")
-            else:
-                break
-        except ValueError:
-            print("Entrada inválida. Debe ingresar un número entero.")
-
-    # Los alumnos del grupo y las filas de asistencia siguen el orden de inscripción.
-    posicion_inscripto = -1
-    for i in range(len(matriz_estudiantes)):
-        if str(legajo) == str(matriz_estudiantes[i][0]):
-            posicion_inscripto = i
-            break
-
-    if posicion_inscripto == -1:
-        print("El legajo no está cargado")
+    opcion = elegir_busqueda_estudiante()
+    if opcion == 0:
         return
+
+    if opcion == 1:
+        posicion_inscripto = seleccionar_estudiante_por_nombre(matriz_estudiantes)
+        if posicion_inscripto is None:
+            return
+    else:
+        while True:
+            try:
+                legajo = int(input("Ingrese el legajo que quiere buscar (0 para volver): "))
+                if legajo == 0:
+                    return
+                if legajo > 0:
+                    break
+                print("El legajo debe ser mayor a cero.")
+            except ValueError:
+                print("Entrada inválida. Debe ingresar un número entero.")
+
+        # Los alumnos del grupo y las filas de asistencia siguen el orden de inscripción.
+        for posicion_inscripto, estudiante in enumerate(matriz_estudiantes):
+            if str(legajo) == str(estudiante[0]):
+                break
+        else:
+            print("El legajo no está cargado")
+            return
 
     # Se obtienen los datos generales asegurando la tercera columna (estado)
     estado_alumno = matriz_estudiantes[posicion_inscripto][2] if len(matriz_estudiantes[posicion_inscripto]) > 2 else "Activo"

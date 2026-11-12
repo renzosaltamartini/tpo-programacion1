@@ -133,19 +133,27 @@ def seleccionar_sesion(matriz_sesiones):
 
 
 def inscribir_estudiante(estudiantes, grupo):
+    from Estudiantes import elegir_busqueda_estudiante, seleccionar_estudiante_por_nombre
 
-    legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
-    legajo = validar_legajo(legajo)
-
-    if legajo == None:
+    opcion = elegir_busqueda_estudiante()
+    if opcion == 0:
         return
 
-    # El estudiante debe existir en el registro general.
-    nombre = buscar_estudiante(estudiantes, legajo)
+    if opcion == 1:
+        posicion = seleccionar_estudiante_por_nombre(estudiantes)
+        if posicion is None:
+            return
+        legajo, nombre = estudiantes[posicion][:2]
+    else:
+        legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
+        legajo = validar_legajo(legajo)
+        if legajo is None:
+            return
 
-    if nombre == None:
-        print("Estudiante no encontrado en el registro general.")
-        return
+        nombre = buscar_estudiante(estudiantes, legajo)
+        if nombre is None:
+            print("Estudiante no encontrado en el registro general.")
+            return
 
     # Se comprueba si ya tiene una inscripcion en este grupo.
     posicion = buscar_inscripto(grupo["inscriptos"], legajo)

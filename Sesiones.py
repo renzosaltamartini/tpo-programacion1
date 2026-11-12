@@ -271,11 +271,11 @@ def validar_dia():
 def validar_turno():
     turnos = ["Mañana", "Tarde", "Noche"]
 
-    turno = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el turno"))
+    turno = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el turno: "))
 
     while turno not in turnos:
         print("Turno invalido")
-        turno = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el turno"))
+        turno = normalizar_nombre(ingresar_texto_no_vacio("Ingrese el turno: "))
 
     return turno
 
@@ -289,11 +289,11 @@ def registrar_horarios():
         turno = validar_turno()
         horarios[dia] = turno
 
-        respuesta = input("Desea ingresar un horario? (S/N)")
+        respuesta = input("Desea ingresar un horario? (S/N): ")
 
         while respuesta.strip().upper() != "S" and respuesta.strip().upper() != "N":
             print("Responda S o N")
-            respuesta = input("Desea ingresar un horario? (S/N)")
+            respuesta = input("Desea ingresar un horario? (S/N): ")
 
     return horarios
 
