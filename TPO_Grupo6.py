@@ -1,162 +1,235 @@
-from Archivos import CARPETA, PADRON, CURSADAS, Padron, registros, escribir, reemplazo, editar_grupo, obtener_grupo
-from Estudiantes import buscar_legajo, menu_estudiantes, validar_inputs
-from Asistencias import menu_asistencias
-from Sesiones import menu_materias_grupos, seleccionar_materia, seleccionar_grupo, validar_fecha
-from Consultas import menu_consultas
+import Archivos
+import Estudiantes
+import Asistencias
+import Sesiones
+import Consultas
 
 
-def abrir_archivos():
-    CARPETA.mkdir(exist_ok=True)
-    PADRON.touch(exist_ok=True)
-    padron = Padron()
+def abrir_cursadas(ruta_cursadas):
+
+    # Un JSON antiguo con datos no se convierte ni se sobrescribe.
+    archivo = None
+    anterior = None
+
+    try:
+        try:
+            archivo = open(ruta_cursadas, "r", encoding="utf-8")
+        except FileNotFoundError:
+            try:
+                anterior = open("archivos/cursadas.json", "r", encoding="utf-8-sig")
+            except FileNotFoundError:
+                anterior = None
+
+            if anterior != None:
+                linea = anterior.readline()
+                while linea != "" and len(linea.strip()) == 0:
+                    linea = anterior.readline()
+                if linea != "":
+                    raise ValueError("Hay datos en cursadas.json. Se requiere convertirlos antes de continuar.")
+
+            archivo = open(ruta_cursadas, "a", encoding="utf-8")
+            archivo.close()
+            archivo = None
+
+    finally:
+        try:
+            Archivos.cerrar_archivo(archivo)
+        finally:
+            Archivos.cerrar_archivo(anterior)
+
+
+def abrir_archivos(ruta_padron=Archivos.PADRON, ruta_cursadas=Archivos.CURSADAS):
+
+    archivo = None
     legajos_padron = set()
-    for legajo, nombre in padron:
-        if legajo in legajos_padron:
-            raise ValueError(f"Legajo repetido en el padrón: {legajo}")
-        legajos_padron.add(legajo)
-
-    configuracion = {"institucion_predeterminada": "UADE"}
-    if not CURSADAS.exists():
-        anterior = CARPETA / "cursadas.json"
-        if anterior.exists() and anterior.stat().st_size:
-            raise ValueError("Hay un cursadas.json anterior con datos. Se requiere convertirlo a JSONL.")
-        with reemplazo(CURSADAS) as destino:
-            escribir(destino, {"tipo": "configuracion", "datos": configuracion})
-
-    # El índice guarda nombres e instituciones para los menús. Cada planilla se lee por separado.
     indice = {}
+    configuracion = {"institucion_predeterminada": "UADE"}
     hay_configuracion = False
-    for registro in registros():
-        tipo = registro["tipo"]
-        if tipo == "configuracion":
-            configuracion = registro["datos"]
-            if hay_configuracion or not isinstance(configuracion, dict):
-                raise ValueError("Configuración inválida o repetida.")
-            institucion = configuracion.get("institucion_predeterminada")
-            if not isinstance(institucion, str) or not institucion.strip():
-                raise ValueError("Institución predeterminada inválida.")
-            hay_configuracion = True
-        elif tipo == "materia":
-            materia = registro["materia"]
-            if not isinstance(materia, str) or not materia.strip() or materia in indice:
-                raise ValueError("Materia inválida o repetida.")
-            indice[materia] = {}
-        elif tipo == "grupo":
-            materia, nombre, grupo = registro["materia"], registro["nombre"], registro["datos"]
-            if materia not in indice or nombre in indice[materia]:
-                raise ValueError("Grupo repetido o materia inexistente.")
-            validar_grupo(nombre, grupo, legajos_padron)
-            indice[materia][nombre] = grupo["institucion"]
-        else:
-            raise ValueError("Tipo de registro desconocido.")
-    if not hay_configuracion:
-        raise ValueError("Falta la configuración de cursadas.")
-    return padron, indice, configuracion
+    cantidad_registros = 0
+
+    try:
+        # El modo a crea el padron si falta y conserva los datos si existe.
+        archivo = open(ruta_padron, "a", encoding="utf-8")
+        archivo.close()
+        archivo = None
+        archivo = open(ruta_padron, "r", encoding="utf-8-sig")
+        estudiante = Archivos.leer_estudiante(archivo)
+
+        while estudiante != None:
+            legajo = estudiante[0]
+            if legajo in legajos_padron:
+                raise ValueError("Legajo repetido en el padron: " + str(legajo))
+            legajos_padron.add(legajo)
+            estudiante = Archivos.leer_estudiante(archivo)
+
+        archivo.close()
+        archivo = None
+        abrir_cursadas(ruta_cursadas)
+        archivo = open(ruta_cursadas, "r", encoding="utf-8")
+        registro = Archivos.leer_registro(archivo)
+
+        while registro != None:
+            cantidad_registros += 1
+            tipo = registro["tipo"]
+
+            if tipo == "configuracion":
+                if hay_configuracion == True:
+                    raise ValueError("La configuracion esta repetida.")
+                configuracion = registro["datos"]
+                institucion = configuracion["institucion_predeterminada"]
+                if len(institucion.strip()) == 0:
+                    raise ValueError("La institucion predeterminada no es valida.")
+                hay_configuracion = True
+
+            elif tipo == "materia":
+                materia = registro["materia"]
+                if len(materia.strip()) == 0 or materia in indice:
+                    raise ValueError("La materia no es valida o esta repetida.")
+                indice[materia] = {}
+
+            elif tipo == "grupo":
+                materia = registro["materia"]
+                nombre = registro["nombre"]
+                grupo = registro["datos"]
+                if materia not in indice or nombre in indice[materia]:
+                    raise ValueError("El grupo esta repetido o su materia no existe.")
+                validar_grupo(nombre, grupo, legajos_padron)
+                indice[materia][nombre] = grupo["institucion"]
+
+            else:
+                raise ValueError("Tipo de registro desconocido.")
+
+            registro = Archivos.leer_registro(archivo)
+
+    finally:
+        Archivos.cerrar_archivo(archivo)
+
+    # Un archivo vacio es un primer inicio. Un archivo con datos pero sin
+    # configuracion se informa como error, en lugar de completarlo a ciegas.
+    if cantidad_registros == 0:
+        registro = {"tipo": "configuracion", "datos": configuracion}
+        guardado = Archivos.agregar_registro(registro, ruta_cursadas)
+        if guardado == False:
+            raise OSError("No se pudo guardar la configuracion inicial.")
+    elif hay_configuracion == False:
+        raise ValueError("Falta la configuracion de cursadas.")
+
+    return ruta_padron, indice, configuracion
 
 
 def validar_grupo(nombre_grupo, grupo, legajos_padron):
-    if not isinstance(nombre_grupo, str) or len(nombre_grupo.strip()) == 0 or not isinstance(grupo, dict):
-        raise ValueError("Hay un grupo con formato incorrecto.")
+
+    if len(nombre_grupo.strip()) == 0:
+        raise ValueError("El nombre del grupo esta vacio.")
 
     for clave in ["institucion", "horarios", "inscriptos", "sesiones", "asistencias"]:
         if clave not in grupo:
             raise ValueError("Falta " + clave + " en el grupo " + nombre_grupo)
 
-    if not isinstance(grupo["institucion"], str) or len(grupo["institucion"].strip()) == 0:
-        raise ValueError("Institucion invalida en el grupo " + nombre_grupo)
-
-    if not isinstance(grupo["horarios"], dict):
-        raise ValueError("Horarios invalidos en el grupo " + nombre_grupo)
+    if len(grupo["institucion"].strip()) == 0:
+        raise ValueError("La institucion del grupo esta vacia.")
 
     for dia in grupo["horarios"]:
-        if dia not in ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"] or grupo["horarios"][dia] not in ["Mañana", "Tarde", "Noche"]:
-            raise ValueError("Dia o turno invalido en el grupo " + nombre_grupo)
-
-    for clave in ["inscriptos", "sesiones", "asistencias"]:
-        if not isinstance(grupo[clave], list):
-            raise ValueError("La lista " + clave + " es invalida en el grupo " + nombre_grupo)
+        if (dia not in ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
+                or grupo["horarios"][dia] not in ["Mañana", "Tarde", "Noche"]):
+            raise ValueError("Hay un dia o turno invalido.")
 
     if len(grupo["inscriptos"]) != len(grupo["asistencias"]):
-        raise ValueError("Las filas no coinciden con los inscriptos del grupo " + nombre_grupo)
+        raise ValueError("Las filas de asistencias no coinciden con las inscripciones.")
 
     legajos = []
     for inscripto in grupo["inscriptos"]:
-        if not isinstance(inscripto, list) or len(inscripto) != 2:
-            raise ValueError("Inscripcion incompleta en el grupo " + nombre_grupo)
-        if type(inscripto[0]) != int or inscripto[0] <= 0 or inscripto[0] in legajos:
-            raise ValueError("Legajo invalido o duplicado en el grupo " + nombre_grupo)
-        if inscripto[0] not in legajos_padron:
-            raise ValueError("Un inscripto no existe en el registro general: " + str(inscripto[0]))
+        if len(inscripto) != 2:
+            raise ValueError("Hay una inscripcion incompleta.")
+        legajo = inscripto[0]
+        if legajo <= 0 or legajo != int(legajo) or legajo in legajos:
+            raise ValueError("Hay un legajo invalido o repetido en el grupo.")
+        if legajo not in legajos_padron:
+            raise ValueError("Un inscripto no existe en el padron: " + str(legajo))
         if inscripto[1] not in ["Activo", "Inactivo"]:
-            raise ValueError("Estado de inscripcion invalido en el grupo " + nombre_grupo)
-        legajos.append(inscripto[0])
+            raise ValueError("El estado de una inscripcion no es valido.")
+        legajos.append(legajo)
 
     numeros = []
     for sesion in grupo["sesiones"]:
-        if not isinstance(sesion, list) or len(sesion) != 3:
-            raise ValueError("Sesion incompleta en el grupo " + nombre_grupo)
-        if type(sesion[0]) != int or sesion[0] <= 0 or sesion[0] in numeros:
-            raise ValueError("Numero de sesion invalido o duplicado en el grupo " + nombre_grupo)
-        if not isinstance(sesion[1], str) or not validar_fecha(sesion[1]):
-            raise ValueError("Fecha invalida en el grupo " + nombre_grupo)
-        if not isinstance(sesion[2], str) or len(sesion[2].strip()) == 0:
-            raise ValueError("Tema vacio o invalido en el grupo " + nombre_grupo)
-        numeros.append(sesion[0])
+        if len(sesion) != 3:
+            raise ValueError("Hay una sesion incompleta.")
+        numero = sesion[0]
+        if numero <= 0 or numero != int(numero) or numero in numeros:
+            raise ValueError("Hay un numero de sesion invalido o repetido.")
+        if Sesiones.validar_fecha(sesion[1]) == False or len(sesion[2].strip()) == 0:
+            raise ValueError("La fecha o el tema de una sesion no es valido.")
+        numeros.append(numero)
 
     for fila in grupo["asistencias"]:
-        if not isinstance(fila, list) or len(fila) != len(grupo["sesiones"]):
-            raise ValueError("Columnas incorrectas en el grupo " + nombre_grupo)
+        if len(fila) != len(grupo["sesiones"]):
+            raise ValueError("Las columnas de asistencias no coinciden con las sesiones.")
         for estado in fila:
             if estado not in ["P", "A", "T", "J", "-"]:
-                raise ValueError("Estado de asistencia invalido en el grupo " + nombre_grupo)
+                raise ValueError("Hay un estado de asistencia invalido.")
 
 
-def consultar_grupo(padron, grupo):
-    if not grupo["inscriptos"] or not grupo["sesiones"]:
+def consultar_grupo(ruta_padron, grupo):
+
+    if len(grupo["inscriptos"]) == 0 or len(grupo["sesiones"]) == 0:
         print("No hay inscriptos o sesiones cargadas en este grupo.")
         return
 
+    # Consultas conserva su interfaz: solo se preparan alumnos de este grupo.
     alumnos = []
     for legajo, estado in grupo["inscriptos"]:
-        alumno = buscar_legajo(padron, legajo)
+        alumno = Archivos.buscar_estudiante(legajo, ruta_padron)
+        if len(alumno) == 0:
+            raise ValueError("El alumno del grupo no existe en el padron.")
         alumnos.append([legajo, alumno[1], estado])
-    menu_consultas(alumnos, grupo["sesiones"], grupo["asistencias"])
+
+    Consultas.menu_consultas(alumnos, grupo["sesiones"], grupo["asistencias"])
 
 
 def main():
+
     try:
-        padron, materias, configuracion = abrir_archivos()
-        opcion = 0
-        while opcion != 5:
-            print("\n--- Gestión de asistencia ---")
-            print("1. Estudiantes")
-            print("2. Asistencia")
-            print("3. Materias, grupos y sesiones")
-            print("4. Consultas")
-            print("5. Finalizar programa")
-            opcion = validar_inputs("Seleccione una opción: ")
+        ruta_padron, materias, configuracion = abrir_archivos()
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
+        print("No se pudieron abrir los datos:", error)
+        return
 
+    opcion = 0
+    while opcion != 5:
+        print("\n--- Gestion de asistencia ---")
+        print("1. Estudiantes")
+        print("2. Asistencia")
+        print("3. Materias, grupos y sesiones")
+        print("4. Consultas")
+        print("5. Finalizar programa")
+        opcion = Estudiantes.validar_inputs("Seleccione una opcion: ")
+
+        try:
             if opcion == 1:
-                menu_estudiantes(padron, materias)
+                Estudiantes.menu_estudiantes(ruta_padron, materias)
             elif opcion == 3:
-                menu_materias_grupos(materias, configuracion)
-            elif opcion in (2, 4):
-                materia = seleccionar_materia(materias)
-                if materia is not None:
-                    nombre = seleccionar_grupo(materias, materia)
-                    if nombre is not None:
+                Sesiones.menu_materias_grupos(materias, configuracion)
+            elif opcion in [2, 4]:
+                materia = Sesiones.seleccionar_materia(materias)
+                if materia != None:
+                    nombre = Sesiones.seleccionar_grupo(materias, materia)
+                    if nombre != None:
+                        grupo = Archivos.obtener_grupo(materia, nombre)
                         if opcion == 2:
-                            with editar_grupo(materia, nombre) as grupo:
-                                menu_asistencias(padron, grupo)
+                            Asistencias.menu_asistencias(ruta_padron, grupo)
+                            guardado = Archivos.guardar_grupo(materia, nombre, grupo)
+                            if guardado == False:
+                                raise OSError("Las asistencias del grupo no se guardaron.")
                         else:
-                            grupo = obtener_grupo(materia, nombre)
-                            consultar_grupo(padron, grupo)
+                            consultar_grupo(ruta_padron, grupo)
             elif opcion != 5:
-                print("Opción inválida. Intente nuevamente.")
-        print("Programa finalizado.")
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        print("No se pudo completar la operación:", error)
+                print("Opcion invalida. Intente nuevamente.")
+
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
+            print("No se pudo completar la operacion:", error)
+
+    print("Programa finalizado.")
 
 
-if __name__ == "__main__":
-    main()
+# Programa principal
+main()

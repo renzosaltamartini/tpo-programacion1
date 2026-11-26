@@ -3,7 +3,7 @@
 # GESTION DE MATERIAS, GRUPOS, HORARIOS Y SESIONES 
 # ========================================= 
 
-from Archivos import agregar_registro, actualizar, obtener_grupo, editar_grupo
+import Archivos
 
 # VALIDACIONES
 # ========================================= 
@@ -176,10 +176,13 @@ def crear_materia(cursadas):
         print("Ya existe una materia con ese nombre.")
         nombre = normalizar_nombre(ingresar_texto_no_vacio("Ingrese otro nombre: "))
 
-    agregar_registro({"tipo": "materia", "materia": nombre})
-    cursadas[nombre] = {}
+    guardado = Archivos.agregar_registro({"tipo": "materia", "materia": nombre})
 
-    print("Materia creada correctamente.")
+    if guardado == True:
+        cursadas[nombre] = {}
+        print("Materia creada correctamente.")
+    else:
+        print("La materia no se guardo.")
 
     return cursadas
     
@@ -231,11 +234,15 @@ def modificar_materia(cursadas):
     if nuevo_nombre != materia and nuevo_nombre in cursadas:
         print("Ya existe una materia con ese nombre.")
     elif nuevo_nombre != materia:
-        actualizar(materia, materia=nuevo_nombre)
-        grupos = cursadas[materia]
-        del cursadas[materia]
-        cursadas[nuevo_nombre] = grupos
-        print("Materia modificada. Se conservaron sus grupos y datos.")
+        cambios = {"materia": nuevo_nombre}
+        guardado = Archivos.actualizar(materia, None, cambios)
+        if guardado == True:
+            grupos = cursadas[materia]
+            del cursadas[materia]
+            cursadas[nuevo_nombre] = grupos
+            print("Materia modificada. Se conservaron sus grupos y datos.")
+        else:
+            print("El cambio de materia no se guardo.")
     else:
         print("El nombre no cambio.")
 
@@ -286,11 +293,11 @@ def registrar_horarios():
         turno = validar_turno()
         horarios[dia] = turno
 
-        respuesta = input("Desea ingresar un horario? (S/N): ")
+        respuesta = input("Desea ingresar un horario? (S/N): ").strip().upper()
 
         while respuesta.strip().upper() != "S" and respuesta.strip().upper() != "N":
             print("Responda S o N")
-            respuesta = input("Desea ingresar un horario? (S/N): ")
+            respuesta = input("Desea ingresar un horario? (S/N): ").strip().upper()
 
     return horarios
 
@@ -336,9 +343,13 @@ def crear_grupo(cursadas, configuracion, materia=None):
             "sesiones": [],
             "asistencias": []
     }
-    agregar_registro({"tipo": "grupo", "materia": materia, "nombre": nombre, "datos": grupo})
-    grupos[nombre] = institucion
-    print("Grupo creado correctamente")
+    registro = {"tipo": "grupo", "materia": materia, "nombre": nombre, "datos": grupo}
+    guardado = Archivos.agregar_registro(registro)
+    if guardado == True:
+        grupos[nombre] = institucion
+        print("Grupo creado correctamente")
+    else:
+        print("El grupo no se guardo.")
 
     return cursadas
 
@@ -352,7 +363,7 @@ def listar_grupos(cursadas, materia):
         return
 
     for nombre in grupos:
-            grupo = obtener_grupo(materia, nombre)
+            grupo = Archivos.obtener_grupo(materia, nombre)
             print("\nGrupo:", nombre)
             print("Institucion:", grupo["institucion"])
     
@@ -399,7 +410,7 @@ def modificar_grupo(cursadas, materia=None):
     if nombre == None:
         return cursadas
 
-    grupo = obtener_grupo(materia, nombre)
+    grupo = Archivos.obtener_grupo(materia, nombre)
 
     print("\n1. Cambiar nombre")
     print("2. Cambiar institucion")
@@ -412,21 +423,31 @@ def modificar_grupo(cursadas, materia=None):
         if nuevo_nombre != nombre and nuevo_nombre in cursadas[materia]:
             print("Ya existe un grupo con ese nombre.")
         elif nuevo_nombre != nombre:
-            actualizar(materia, nombre, nombre=nuevo_nombre)
-            cursadas[materia][nuevo_nombre] = grupo["institucion"]
-            del cursadas[materia][nombre]
-            print("Grupo modificado. Se conservaron sus datos.")
+            cambios = {"nombre": nuevo_nombre}
+            guardado = Archivos.actualizar(materia, nombre, cambios)
+            if guardado == True:
+                cursadas[materia][nuevo_nombre] = grupo["institucion"]
+                del cursadas[materia][nombre]
+                print("Grupo modificado. Se conservaron sus datos.")
+            else:
+                print("El cambio de nombre del grupo no se guardo.")
 
     elif opcion == 2:
         grupo["institucion"] = ingresar_texto_no_vacio("Ingrese la nueva institucion: ")
-        actualizar(materia, nombre, datos=grupo)
-        cursadas[materia][nombre] = grupo["institucion"]
-        print("Institucion modificada.")
+        guardado = Archivos.guardar_grupo(materia, nombre, grupo)
+        if guardado == True:
+            cursadas[materia][nombre] = grupo["institucion"]
+            print("Institucion modificada.")
+        else:
+            print("El cambio de institucion no se guardo.")
 
     elif opcion == 3:
         grupo["horarios"] = registrar_horarios()
-        actualizar(materia, nombre, datos=grupo)
-        print("Horarios modificados.")
+        guardado = Archivos.guardar_grupo(materia, nombre, grupo)
+        if guardado == True:
+            print("Horarios modificados.")
+        else:
+            print("El cambio de horarios no se guardo.")
 
     return cursadas
 
@@ -435,9 +456,13 @@ def cambiar_institucion_predeterminada(configuracion):
     institucion = ingresar_texto_no_vacio(
         "Ingrese la nueva institucion predeterminada: "
     )
-    actualizar(datos={"institucion_predeterminada": institucion})
-    configuracion["institucion_predeterminada"] = institucion
-    print("La institucion predeterminada se usara como sugerencia para grupos nuevos.")
+    cambios = {"datos": {"institucion_predeterminada": institucion}}
+    guardado = Archivos.actualizar(None, None, cambios)
+    if guardado == True:
+        configuracion["institucion_predeterminada"] = institucion
+        print("La institucion predeterminada se usara como sugerencia para grupos nuevos.")
+    else:
+        print("La configuracion no se guardo.")
 
 
 # =========================================
@@ -455,7 +480,7 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
     # Agrega una fila nueva (nuevo estudiante),
     # con una columna por cada sesion existente.
 
-    if not isinstance(cantidad_sesiones, int) or cantidad_sesiones < 0:
+    if cantidad_sesiones < 0 or cantidad_sesiones != int(cantidad_sesiones):
         print("La cantidad de sesiones debe ser un entero mayor o igual a cero.")
         return False
 
@@ -469,18 +494,17 @@ def agregar_fila_asistencia(asistencias, cantidad_sesiones):
 
 
 def verificar_dimensiones_matriz(asistencias, sesiones):
-    # Comprueba que cada fila tenga una columna por cada sesion.
-    if not isinstance(asistencias, list) or not isinstance(sesiones, list):
-        print("Aviso: las sesiones y asistencias deben estar organizadas en listas.")
-        return False
 
-    for i in range(len(asistencias)):
+    correctas = True
 
-        if not isinstance(asistencias[i], list) or len(asistencias[i]) != len(sesiones):
-            print("Aviso: una fila de asistencias no tiene la cantidad correcta de columnas.")
-            return False
+    for fila in asistencias:
+        if len(fila) != len(sesiones):
+            correctas = False
 
-    return True
+    if correctas == False:
+        print("Aviso: una fila de asistencias tiene dimensiones incorrectas.")
+
+    return correctas
 
 def crear_sesion(sesiones, asistencias):
 
@@ -680,9 +704,13 @@ def menu_materias_grupos(cursadas, configuracion):
                 nombre_grupo = seleccionar_grupo(cursadas, materia)
 
                 if nombre_grupo != None:
-                    with editar_grupo(materia, nombre_grupo) as grupo:
-                        menu_sesiones(grupo["sesiones"], grupo["asistencias"])
+                    grupo = Archivos.obtener_grupo(materia, nombre_grupo)
+                    menu_sesiones(grupo["sesiones"], grupo["asistencias"])
+                    guardado = Archivos.guardar_grupo(materia, nombre_grupo, grupo)
+                    if guardado == True:
                         print("Cantidad de sesiones:", contar_sesiones_recursivo(grupo["sesiones"]))
+                    else:
+                        raise OSError("No se pudieron guardar las sesiones del grupo.")
 
         elif opcion == 8:
             cambiar_institucion_predeterminada(configuracion)

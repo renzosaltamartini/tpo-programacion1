@@ -1,3 +1,5 @@
+import Archivos
+
 # =========================================
 # SISTEMA DE REGISTRO DE ASISTENCIA
 # GESTION DE ASISTENCIAS
@@ -47,7 +49,7 @@ def validar_legajo(legajo):
     # Valida un legajo positivo; el 0 permite cancelar.
     legajo = legajo.strip()
 
-    while not legajo.isdecimal():
+    while not legajo.isdigit():
         print("Legajo inválido.")
         legajo = input("Ingrese un legajo positivo o 0 para volver: ").strip()
 
@@ -69,15 +71,15 @@ def mostrar_estados_asistencia():
     print("J - Justificado")
 
 
-def buscar_estudiante(estudiantes, legajo):
+def buscar_estudiante(ruta_padron, legajo):
 
-    # Busca el legajo y devuelve el nombre del estudiante.
-    for estudiante in estudiantes:
+    alumno = Archivos.buscar_estudiante(legajo, ruta_padron)
+    nombre = None
 
-        if estudiante[0] == legajo:
-            return estudiante[1]
+    if len(alumno) > 0:
+        nombre = alumno[1]
 
-    return None
+    return nombre
 
 
 def buscar_inscripto(inscriptos, legajo, posicion=0):
@@ -132,26 +134,26 @@ def seleccionar_sesion(matriz_sesiones):
 # =========================================
 
 
-def inscribir_estudiante(estudiantes, grupo):
-    from Estudiantes import elegir_busqueda_estudiante, seleccionar_en_padron
+def inscribir_estudiante(ruta_padron, grupo):
+    import Estudiantes
 
-    opcion = elegir_busqueda_estudiante()
+    opcion = Estudiantes.elegir_busqueda_estudiante()
     if opcion == 0:
         return
 
     if opcion == 1:
-        alumno = seleccionar_en_padron(estudiantes)
-        if alumno is None:
+        alumno = Estudiantes.seleccionar_en_padron(ruta_padron)
+        if alumno == None:
             return
         legajo, nombre = alumno
     else:
         legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
         legajo = validar_legajo(legajo)
-        if legajo is None:
+        if legajo == None:
             return
 
-        nombre = buscar_estudiante(estudiantes, legajo)
-        if nombre is None:
+        nombre = buscar_estudiante(ruta_padron, legajo)
+        if nombre == None:
             print("Estudiante no encontrado en el registro general.")
             return
 
@@ -237,7 +239,7 @@ def reactivar_inscripcion(grupo):
     print("Inscripción reactivada correctamente.")
 
 
-def mostrar_inscriptos(estudiantes, grupo):
+def mostrar_inscriptos(ruta_padron, grupo):
 
     if len(grupo["inscriptos"]) == 0:
         print("No hay estudiantes inscriptos en este grupo.")
@@ -249,13 +251,13 @@ def mostrar_inscriptos(estudiantes, grupo):
     for inscripto in grupo["inscriptos"]:
 
         legajo = inscripto[0]
-        nombre = buscar_estudiante(estudiantes, legajo)
+        nombre = buscar_estudiante(ruta_padron, legajo)
         estado = inscripto[1]
 
         print(f"{legajo:<10}{nombre:<25}{estado:<12}")
 
 
-def menu_inscripciones(estudiantes, grupo):
+def menu_inscripciones(ruta_padron, grupo):
 
     # Menu independiente para gestionar las inscripciones del grupo seleccionado.
     opcion = ""
@@ -273,7 +275,7 @@ def menu_inscripciones(estudiantes, grupo):
 
         if opcion == "1":
 
-            inscribir_estudiante(estudiantes, grupo)
+            inscribir_estudiante(ruta_padron, grupo)
 
         elif opcion == "2":
 
@@ -285,7 +287,7 @@ def menu_inscripciones(estudiantes, grupo):
 
         elif opcion == "4":
 
-            mostrar_inscriptos(estudiantes, grupo)
+            mostrar_inscriptos(ruta_padron, grupo)
 
         elif opcion == "0":
 
@@ -302,7 +304,7 @@ def menu_inscripciones(estudiantes, grupo):
 # =========================================
 
 
-def registrar_asistencia(estudiantes, grupo):
+def registrar_asistencia(ruta_padron, grupo):
 
     if len(grupo["sesiones"]) == 0:
         print("No hay sesiones registradas.")
@@ -331,7 +333,7 @@ def registrar_asistencia(estudiantes, grupo):
             if grupo["asistencias"][i][posicion_sesion] == "-":
 
                 legajo = grupo["inscriptos"][i][0]
-                nombre = buscar_estudiante(estudiantes, legajo)
+                nombre = buscar_estudiante(ruta_padron, legajo)
 
                 print("\nLegajo:", legajo)
                 print("Estudiante:", nombre)
@@ -353,7 +355,7 @@ def registrar_asistencia(estudiantes, grupo):
         print("\nNo hay asistencias pendientes de inscriptos activos para esta sesión.")
 
 
-def modificar_asistencia(estudiantes, grupo):
+def modificar_asistencia(ruta_padron, grupo):
 
     if len(grupo["sesiones"]) == 0:
         print("No hay sesiones registradas.")
@@ -387,7 +389,7 @@ def modificar_asistencia(estudiantes, grupo):
             if posicion_sesion == None:
                 return
 
-            nombre = buscar_estudiante(estudiantes, legajo)
+            nombre = buscar_estudiante(ruta_padron, legajo)
             estado_actual = grupo["asistencias"][posicion_estudiante][posicion_sesion]
 
             print("\nEstudiante:", nombre)
@@ -417,7 +419,7 @@ def modificar_asistencia(estudiantes, grupo):
         continuar = validar_si_no(continuar)
 
 
-def mostrar_planilla_general(estudiantes, grupo):
+def mostrar_planilla_general(ruta_padron, grupo):
 
     # Para mostrar la planilla deben existir inscriptos y sesiones cargadas.
     if len(grupo["inscriptos"]) == 0:
@@ -445,7 +447,7 @@ def mostrar_planilla_general(estudiantes, grupo):
     for i in range(len(grupo["inscriptos"])):
 
         legajo = grupo["inscriptos"][i][0]
-        nombre = buscar_estudiante(estudiantes, legajo)
+        nombre = buscar_estudiante(ruta_padron, legajo)
         estado_inscripcion = grupo["inscriptos"][i][1]
 
         print(f"{legajo:<10}{nombre:<25}{estado_inscripcion:<12}", end="")
@@ -460,7 +462,7 @@ def mostrar_planilla_general(estudiantes, grupo):
     print("\n- : asistencia sin registrar.")
 
 
-def menu_asistencias(estudiantes, grupo):
+def menu_asistencias(ruta_padron, grupo):
 
     # Menu principal del modulo de asistencias.
     opcion = ""
@@ -477,15 +479,15 @@ def menu_asistencias(estudiantes, grupo):
 
         if opcion == "1":
 
-            registrar_asistencia(estudiantes, grupo)
+            registrar_asistencia(ruta_padron, grupo)
 
         elif opcion == "2":
 
-            modificar_asistencia(estudiantes, grupo)
+            modificar_asistencia(ruta_padron, grupo)
 
         elif opcion == "3":
 
-            mostrar_planilla_general(estudiantes, grupo)
+            mostrar_planilla_general(ruta_padron, grupo)
 
         elif opcion == "0":
 

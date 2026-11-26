@@ -1,4 +1,4 @@
-from Estudiantes import elegir_busqueda_estudiante, seleccionar_estudiante_por_nombre
+import Estudiantes
 
 
 def contar_estado(lista, tipo):
@@ -15,13 +15,13 @@ def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias
         print("No hay alumnos cargados")
         return
     
-    opcion = elegir_busqueda_estudiante()
+    opcion = Estudiantes.elegir_busqueda_estudiante()
     if opcion == 0:
         return
 
     if opcion == 1:
-        posicion_inscripto = seleccionar_estudiante_por_nombre(matriz_estudiantes)
-        if posicion_inscripto is None:
+        posicion_inscripto = Estudiantes.seleccionar_estudiante_por_nombre(matriz_estudiantes)
+        if posicion_inscripto == None:
             return
     else:
         while True:
