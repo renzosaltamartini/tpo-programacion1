@@ -1,0 +1,20 @@
+{
+  "tipo": "grupo",
+  "materia": "<nombre de la materia>",
+  "nombre": "<nombre del grupo>",
+  "datos": {
+    "institucion": "<nombre de la institución>",
+    "horarios": {
+      "<día de cursada>": "<turno>"
+    },
+    "inscriptos": [
+      ["<legajo>", "<estado de inscripción>"]
+    ],
+    "sesiones": [
+      ["<numero de sesión>", "<fecha DD/MM/AAAA>", "<tema>"]
+    ],
+    "asistencias": [
+      ["<estado de asistencia>"]
+    ]
+  }
+}

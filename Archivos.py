@@ -11,23 +11,6 @@ PADRON = "archivos/matriz_alumnos.txt"
 CURSADAS = "archivos/cursadas.jsonl"
 
 
-# Se mantienen los formatos actuales: estudiantes en TXT y configuracion,
-# materias y grupos en JSONL. No se convierten los archivos existentes.
-# Un registro de grupo todavia contiene sus inscriptos, sesiones y asistencias.
-#
-# Las rutas se reciben por parametro. Las predeterminadas son relativas
-# a la carpeta del programa, desde donde debe ejecutarse.
-#
-# Ya no se usan Padron, registros(), reemplazo() ni editar_grupo().
-# Los otros modulos utilizan las funciones y reciben la ruta del padron.
-# Para editar un grupo se separan obtener_grupo() y guardar_grupo().
-#
-# Las modificaciones se preparan en un auxiliar .tmp y despues se copian
-# al original por lineas. El auxiliar queda disponible para recuperacion.
-# Esa copia final no es atomica: si falla, el original puede quedar parcial.
-# No se usan funciones de renombrado o borrado ajenas al material de clase.
-
-
 # =========================================
 # FUNCIONES AUXILIARES
 # =========================================
@@ -57,31 +40,9 @@ def leer_registro(archivo):
     return registro
 
 
-def escribir(destino, registro):
+def linea_json(registro):
 
-    destino.write(json.dumps(registro) + "\n")
-
-
-def copiar_archivo(ruta_origen, ruta_destino):
-
-    if ruta_origen == ruta_destino:
-        raise ValueError("El origen y el destino deben ser diferentes.")
-
-    entrada = None
-    salida = None
-
-    try:
-        entrada = open(ruta_origen, "r", encoding="utf-8")
-        salida = open(ruta_destino, "w", encoding="utf-8")
-
-        for linea in entrada:
-            salida.write(linea)
-
-    finally:
-        try:
-            cerrar_archivo(entrada)
-        finally:
-            cerrar_archivo(salida)
+    return json.dumps(registro, ensure_ascii=False) + "\n"
 
 
 # =========================================
@@ -201,14 +162,13 @@ def cambiar_nombre_estudiante(legajo, nombre, ruta_padron=PADRON):
     encontrado = False
     guardado = False
     nombre = nombre.strip()
-    ruta_auxiliar = ruta_padron + ".tmp"
+    lineas = []
 
     try:
         if not nombre.replace(" ", "").isalpha():
             raise ValueError("El nombre no es valido.")
 
         entrada = open(ruta_padron, "r", encoding="utf-8-sig")
-        salida = open(ruta_auxiliar, "w", encoding="utf-8")
         linea = entrada.readline()
 
         while linea != "":
@@ -220,27 +180,27 @@ def cambiar_nombre_estudiante(legajo, nombre, ruta_padron=PADRON):
                         raise ValueError("El legajo esta repetido.")
                     datos = linea.strip().split(",")
                     datos[1] = nombre
-                    salida.write(",".join(datos) + "\n")
+                    lineas.append(",".join(datos) + "\n")
                     encontrado = True
                 else:
-                    salida.write(linea)
+                    lineas.append(linea)
             else:
-                salida.write(linea)
+                lineas.append(linea)
 
             linea = entrada.readline()
 
         entrada.close()
         entrada = None
-        salida.close()
-        salida = None
 
         if encontrado == True:
-            copiar_archivo(ruta_auxiliar, ruta_padron)
+            salida = open(ruta_padron, "w", encoding="utf-8")
+            salida.writelines(lineas)
+            salida.close()
+            salida = None
             guardado = True
 
     except (OSError, ValueError, TypeError) as error:
         print("No se pudo modificar el nombre:", error)
-        print("Si fallo la copia final, revise el auxiliar:", ruta_auxiliar)
 
     finally:
         try:
@@ -265,7 +225,7 @@ def agregar_registro(registro, ruta_cursadas=CURSADAS):
         # Se comprueba la serializacion antes de abrir la salida.
         if "tipo" not in registro:
             raise ValueError("El registro debe contener el campo tipo.")
-        linea_nueva = json.dumps(registro) + "\n"
+        linea_nueva = linea_json(registro)
 
         archivo = open(ruta_cursadas, "r", encoding="utf-8")
         ultima_linea = ""
@@ -332,14 +292,13 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
     salida = None
     encontrado = False
     guardado = False
-    ruta_auxiliar = ruta_cursadas + ".tmp"
+    lineas = []
 
     try:
         if cambios == None or len(cambios) == 0:
             raise ValueError("No se indicaron cambios para guardar.")
 
         entrada = open(ruta_cursadas, "r", encoding="utf-8")
-        salida = open(ruta_auxiliar, "w", encoding="utf-8")
         registro = leer_registro(entrada)
 
         while registro != None:
@@ -359,21 +318,21 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
                     registro[clave] = cambios[clave]
                 encontrado = True
 
-            escribir(salida, registro)
+            lineas.append(linea_json(registro))
             registro = leer_registro(entrada)
 
         entrada.close()
         entrada = None
-        salida.close()
-        salida = None
 
         if encontrado == True:
-            copiar_archivo(ruta_auxiliar, ruta_cursadas)
+            salida = open(ruta_cursadas, "w", encoding="utf-8")
+            salida.writelines(lineas)
+            salida.close()
+            salida = None
             guardado = True
 
     except (OSError, ValueError, TypeError, KeyError) as error:
         print("No se pudieron actualizar los datos:", error)
-        print("Si fallo la copia final, revise el auxiliar:", ruta_auxiliar)
 
     finally:
         try:

@@ -1,0 +1,6 @@
+{
+  "tipo": "configuracion",
+  "datos": {
+    "institucion_predeterminada": "UADE"
+  }
+}
