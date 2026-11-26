@@ -3,13 +3,8 @@
 # GESTION DE MATERIAS, GRUPOS, HORARIOS Y SESIONES 
 # ========================================= 
 
-import json
+from Archivos import agregar_registro, actualizar, obtener_grupo, editar_grupo
 
-
-ARCHIVO_DATOS = "archivos/cursadas.json"
-
-
-# =========================================
 # VALIDACIONES
 # ========================================= 
 
@@ -181,6 +176,7 @@ def crear_materia(cursadas):
         print("Ya existe una materia con ese nombre.")
         nombre = normalizar_nombre(ingresar_texto_no_vacio("Ingrese otro nombre: "))
 
+    agregar_registro({"tipo": "materia", "materia": nombre})
     cursadas[nombre] = {}
 
     print("Materia creada correctamente.")
@@ -235,6 +231,7 @@ def modificar_materia(cursadas):
     if nuevo_nombre != materia and nuevo_nombre in cursadas:
         print("Ya existe una materia con ese nombre.")
     elif nuevo_nombre != materia:
+        actualizar(materia, materia=nuevo_nombre)
         grupos = cursadas[materia]
         del cursadas[materia]
         cursadas[nuevo_nombre] = grupos
@@ -332,13 +329,15 @@ def crear_grupo(cursadas, configuracion, materia=None):
     print("Registe los horarios del grupo")
     horarios = registrar_horarios()
 
-    grupos[nombre] = {
+    grupo = {
         "institucion": institucion,
             "horarios": horarios,
             "inscriptos": [],
             "sesiones": [],
             "asistencias": []
     }
+    agregar_registro({"tipo": "grupo", "materia": materia, "nombre": nombre, "datos": grupo})
+    grupos[nombre] = institucion
     print("Grupo creado correctamente")
 
     return cursadas
@@ -353,7 +352,7 @@ def listar_grupos(cursadas, materia):
         return
 
     for nombre in grupos:
-            grupo = grupos[nombre]
+            grupo = obtener_grupo(materia, nombre)
             print("\nGrupo:", nombre)
             print("Institucion:", grupo["institucion"])
     
@@ -380,8 +379,7 @@ def seleccionar_grupo(cursadas, materia):
 
     print("\n--- Seleccionar grupo ---")
     for i in range(len(nombres)):
-        grupo = grupos[nombres[i]]
-        print(i + 1, "-", nombres[i], "| Institucion:", grupo["institucion"])
+        print(i + 1, "-", nombres[i], "| Institucion:", grupos[nombres[i]])
 
     opcion = leer_opcion("Seleccione un grupo (0 para cancelar): ", 0, len(nombres))
 
@@ -401,7 +399,7 @@ def modificar_grupo(cursadas, materia=None):
     if nombre == None:
         return cursadas
 
-    grupo = cursadas[materia][nombre]
+    grupo = obtener_grupo(materia, nombre)
 
     print("\n1. Cambiar nombre")
     print("2. Cambiar institucion")
@@ -414,25 +412,31 @@ def modificar_grupo(cursadas, materia=None):
         if nuevo_nombre != nombre and nuevo_nombre in cursadas[materia]:
             print("Ya existe un grupo con ese nombre.")
         elif nuevo_nombre != nombre:
-            cursadas[materia][nuevo_nombre] = grupo
+            actualizar(materia, nombre, nombre=nuevo_nombre)
+            cursadas[materia][nuevo_nombre] = grupo["institucion"]
             del cursadas[materia][nombre]
             print("Grupo modificado. Se conservaron sus datos.")
 
     elif opcion == 2:
         grupo["institucion"] = ingresar_texto_no_vacio("Ingrese la nueva institucion: ")
+        actualizar(materia, nombre, datos=grupo)
+        cursadas[materia][nombre] = grupo["institucion"]
         print("Institucion modificada.")
 
     elif opcion == 3:
         grupo["horarios"] = registrar_horarios()
+        actualizar(materia, nombre, datos=grupo)
         print("Horarios modificados.")
 
     return cursadas
 
 
 def cambiar_institucion_predeterminada(configuracion):
-    configuracion["institucion_predeterminada"] = ingresar_texto_no_vacio(
+    institucion = ingresar_texto_no_vacio(
         "Ingrese la nueva institucion predeterminada: "
     )
+    actualizar(datos={"institucion_predeterminada": institucion})
+    configuracion["institucion_predeterminada"] = institucion
     print("La institucion predeterminada se usara como sugerencia para grupos nuevos.")
 
 
@@ -626,127 +630,6 @@ def contar_sesiones_recursivo(sesiones, posicion=0):
 
 
 # =========================================
-# ARCHIVOS Y JSON
-# La persistencia general se debe coordinar con el integrante responsable.
-# =========================================
-
-
-def guardar_datos(cursadas, configuracion, archivo=ARCHIVO_DATOS):
-    arch = None 
-
-    try:
-        arch = open(archivo, "w", encoding="utf-8")
-        datos = {
-            "cursadas": cursadas,
-            "configuracion": configuracion
-        }
-        json.dump(datos, arch, ensure_ascii=False, indent=4)
-
-    except (OSError, TypeError, ValueError) as error:
-        print("No se pudieron guardar los datos:", error)
-        return False
-
-    else:
-        print("Datos guardados correctamente.")
-        return True
-
-    finally:
-        if arch != None:
-            try:
-                arch.close()
-            except OSError:
-                print("No se pudo cerrar correctamente el archivo.")
-
-
-def cargar_datos(archivo=ARCHIVO_DATOS):
-    arch = None
-
-    try:
-        arch = open(archivo, "r", encoding="utf-8")
-        datos = json.load(arch)
-
-        if not isinstance(datos, dict):
-            raise ValueError("El contenido del archivo no tiene el formato esperado.")
-
-        if "cursadas" not in datos or "configuracion" not in datos:
-            raise ValueError("El archivo no contiene las claves necesarias.")
-
-        if not isinstance(datos["cursadas"], dict):
-            raise ValueError("La informacion de cursadas no tiene el formato esperado.")
-
-        if not isinstance(datos["configuracion"], dict):
-            raise ValueError("La configuracion no tiene el formato esperado.")
-
-        # Verifica la estructura de materias y grupos antes de recorrerlos.
-        for materia, grupos in datos["cursadas"].items():
-            if not isinstance(materia, str) or not isinstance(grupos, dict):
-                raise ValueError("Una materia o sus grupos tienen un formato incorrecto.")
-
-            for nombre_grupo, grupo in grupos.items():
-                if not isinstance(nombre_grupo, str) or not isinstance(grupo, dict):
-                    raise ValueError("Un grupo tiene un formato incorrecto.")
-
-                if "institucion" in grupo and not isinstance(grupo["institucion"], str):
-                    raise ValueError("La institucion de un grupo tiene un formato incorrecto.")
-                if "horarios" in grupo and not isinstance(grupo["horarios"], dict):
-                    raise ValueError("Los horarios de un grupo tienen un formato incorrecto.")
-                if "inscriptos" in grupo and not isinstance(grupo["inscriptos"], list):
-                    raise ValueError("Los inscriptos de un grupo tienen un formato incorrecto.")
-                if "sesiones" in grupo and not isinstance(grupo["sesiones"], list):
-                    raise ValueError("Las sesiones de un grupo tienen un formato incorrecto.")
-                if "asistencias" in grupo and not isinstance(grupo["asistencias"], list):
-                    raise ValueError("Las asistencias de un grupo tienen un formato incorrecto.")
-
-        if ("institucion_predeterminada" in datos["configuracion"]
-                and not isinstance(datos["configuracion"]["institucion_predeterminada"], str)):
-            raise ValueError("La institucion predeterminada tiene un formato incorrecto.")
-
-    except FileNotFoundError:
-        print("Todavia no existe un archivo guardado. Se iniciara sin datos.")
-        return {}, {"institucion_predeterminada": "UADE"}
-
-    except json.JSONDecodeError:
-        print("El archivo JSON esta vacio o tiene un formato incorrecto.")
-        return {}, {"institucion_predeterminada": "UADE"}
-
-    except (OSError, TypeError, ValueError, KeyError) as error:
-        print("No se pudieron cargar los datos:", error)
-        return {}, {"institucion_predeterminada": "UADE"}
-
-    else:
-        cursadas = datos["cursadas"]
-        configuracion = datos["configuracion"]
-
-        if "institucion_predeterminada" not in configuracion:
-            configuracion["institucion_predeterminada"] = "UADE"
-
-        # Completa claves faltantes de grupos antiguos sin borrar datos.
-        for materia in cursadas:
-            for nombre_grupo in cursadas[materia]:
-                grupo = cursadas[materia][nombre_grupo]
-                if "institucion" not in grupo:
-                    grupo["institucion"] = configuracion["institucion_predeterminada"]
-                if "horarios" not in grupo:
-                    grupo["horarios"] = {}
-                if "inscriptos" not in grupo:
-                    grupo["inscriptos"] = []
-                if "sesiones" not in grupo:
-                    grupo["sesiones"] = []
-                if "asistencias" not in grupo:
-                    grupo["asistencias"] = []
-
-        print("Datos recuperados correctamente.")
-        return cursadas, configuracion
-
-    finally:
-        if arch != None:
-            try:
-                arch.close()
-            except OSError:
-                print("No se pudo cerrar correctamente el archivo.")
-
-
-# =========================================
 # MENU DE MATERIAS Y GRUPOS
 # =========================================
 
@@ -765,11 +648,10 @@ def menu_materias_grupos(cursadas, configuracion):
         print("6. Modificar grupo")
         print("7. Gestionar sesiones de un grupo")
         print("8. Cambiar institucion predeterminada")
-        print("9. Guardar datos")
         print("0. Volver al menu principal")
         print("=========================================")
 
-        opcion = leer_opcion("Seleccione una opcion: ", 0, 9)
+        opcion = leer_opcion("Seleccione una opcion: ", 0, 8)
 
         if opcion == 1:
             crear_materia(cursadas)
@@ -798,19 +680,13 @@ def menu_materias_grupos(cursadas, configuracion):
                 nombre_grupo = seleccionar_grupo(cursadas, materia)
 
                 if nombre_grupo != None:
-                    grupo = cursadas[materia][nombre_grupo]
-                    grupo["sesiones"], grupo["asistencias"] = menu_sesiones(
-                        grupo["sesiones"],
-                        grupo["asistencias"],
-                        )
-                    
-                    print("Cantidad de sesiones:", contar_sesiones_recursivo(grupo["sesiones"]))
-        
+                    with editar_grupo(materia, nombre_grupo) as grupo:
+                        menu_sesiones(grupo["sesiones"], grupo["asistencias"])
+                        print("Cantidad de sesiones:", contar_sesiones_recursivo(grupo["sesiones"]))
+
         elif opcion == 8:
             cambiar_institucion_predeterminada(configuracion)
         
-        elif opcion == 9:
-            guardar_datos(cursadas, configuracion)
         
         elif opcion == 0:
             print("Volviendo al menu principal.")

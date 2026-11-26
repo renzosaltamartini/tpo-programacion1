@@ -133,17 +133,17 @@ def seleccionar_sesion(matriz_sesiones):
 
 
 def inscribir_estudiante(estudiantes, grupo):
-    from Estudiantes import elegir_busqueda_estudiante, seleccionar_estudiante_por_nombre
+    from Estudiantes import elegir_busqueda_estudiante, seleccionar_en_padron
 
     opcion = elegir_busqueda_estudiante()
     if opcion == 0:
         return
 
     if opcion == 1:
-        posicion = seleccionar_estudiante_por_nombre(estudiantes)
-        if posicion is None:
+        alumno = seleccionar_en_padron(estudiantes)
+        if alumno is None:
             return
-        legajo, nombre = estudiantes[posicion][:2]
+        legajo, nombre = alumno
     else:
         legajo = input("\nIngrese el legajo del estudiante (0 para volver): ")
         legajo = validar_legajo(legajo)
