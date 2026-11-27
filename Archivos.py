@@ -51,7 +51,7 @@ def linea_json(registro):
 
 
 def leer_estudiante(archivo):
-
+    #lee una sola linea de el archivo, fijandose el final
     linea = archivo.readline()
 
     while linea != "" and len(linea.strip()) == 0:
@@ -66,7 +66,7 @@ def leer_estudiante(archivo):
 
 
 def separar_estudiante(linea):
-
+    #pasa a una lista los datos de el archivo
     datos = linea.strip().split(",")
 
     if len(datos) != 2 and len(datos) != 3:
