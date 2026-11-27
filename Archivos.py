@@ -4,6 +4,7 @@
 # =========================================
 
 import json
+import os
 
 
 CARPETA = "archivos"
@@ -161,14 +162,18 @@ def cambiar_nombre_estudiante(legajo, nombre, ruta_padron=PADRON):
     salida = None
     encontrado = False
     guardado = False
+    temporal_creado = False
+    temporal = ruta_padron + ".tmp"
     nombre = nombre.strip()
-    lineas = []
 
     try:
         if not nombre.replace(" ", "").isalpha():
             raise ValueError("El nombre no es valido.")
 
         entrada = open(ruta_padron, "r", encoding="utf-8-sig")
+        salida = open(temporal, "w", encoding="utf-8")
+        temporal_creado = True
+
         linea = entrada.readline()
 
         while linea != "":
@@ -180,23 +185,23 @@ def cambiar_nombre_estudiante(legajo, nombre, ruta_padron=PADRON):
                         raise ValueError("El legajo esta repetido.")
                     datos = linea.strip().split(",")
                     datos[1] = nombre
-                    lineas.append(",".join(datos) + "\n")
+                    salida.write(",".join(datos) + "\n")
                     encontrado = True
                 else:
-                    lineas.append(linea)
+                    salida.write(linea)
             else:
-                lineas.append(linea)
+                salida.write(linea)
 
             linea = entrada.readline()
 
         entrada.close()
         entrada = None
 
+        salida.close()
+        salida = None
+
         if encontrado == True:
-            salida = open(ruta_padron, "w", encoding="utf-8")
-            salida.writelines(lineas)
-            salida.close()
-            salida = None
+            os.replace(temporal, ruta_padron)
             guardado = True
 
     except (OSError, ValueError, TypeError) as error:
@@ -207,6 +212,12 @@ def cambiar_nombre_estudiante(legajo, nombre, ruta_padron=PADRON):
             cerrar_archivo(entrada)
         finally:
             cerrar_archivo(salida)
+
+        if temporal_creado == True and guardado == False:
+            try:
+                os.remove(temporal)
+            except OSError:
+                pass
 
     return guardado
 
@@ -287,18 +298,21 @@ def obtener_grupo(materia, nombre, ruta_cursadas=CURSADAS):
 def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
                ruta_cursadas=CURSADAS):
 
-    # Los cambios se reciben en un diccionario comun, sin **cambios.
     entrada = None
     salida = None
     encontrado = False
     guardado = False
-    lineas = []
+    temporal_creado = False
+    temporal = ruta_cursadas + ".tmp"
 
     try:
         if cambios == None or len(cambios) == 0:
             raise ValueError("No se indicaron cambios para guardar.")
 
         entrada = open(ruta_cursadas, "r", encoding="utf-8")
+        salida = open(temporal, "w", encoding="utf-8")
+        temporal_creado = True
+
         registro = leer_registro(entrada)
 
         while registro != None:
@@ -318,17 +332,17 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
                     registro[clave] = cambios[clave]
                 encontrado = True
 
-            lineas.append(linea_json(registro))
+            salida.write(linea_json(registro))
             registro = leer_registro(entrada)
 
         entrada.close()
         entrada = None
 
+        salida.close()
+        salida = None
+
         if encontrado == True:
-            salida = open(ruta_cursadas, "w", encoding="utf-8")
-            salida.writelines(lineas)
-            salida.close()
-            salida = None
+            os.replace(temporal, ruta_cursadas)
             guardado = True
 
     except (OSError, ValueError, TypeError, KeyError) as error:
@@ -339,6 +353,12 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
             cerrar_archivo(entrada)
         finally:
             cerrar_archivo(salida)
+
+        if temporal_creado == True and guardado == False:
+            try:
+                os.remove(temporal)
+            except OSError:
+                pass
 
     return guardado
 
