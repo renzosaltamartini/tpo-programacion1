@@ -105,12 +105,12 @@ def buscar_estudiante(legajo, ruta_padron=PADRON):
     finally:
         cerrar_archivo(archivo)
 
-    # Los errores se propagan para no confundirlos con un legajo inexistente.
+    # no hay except porque esta funcion pasa el codigo de error a la funcion que llamo esta funcon es como que se lo da a la que lo llamo
     return encontrado
 
 
 def agregar_estudiante(legajo, nombre, ruta_padron=PADRON):
-
+    # esta funcion guarda los datos de los alumnos en el archivo 
     archivo = None
     guardado = False
     repetido = False
