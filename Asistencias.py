@@ -173,15 +173,8 @@ def inscribir_estudiante(ruta_padron, grupo):
         print("Inscripción cancelada.")
         return
 
-    # Se prepara una fila con un pendiente por cada sesion existente.
-    fila_asistencias = []
-
-    for sesion in grupo["sesiones"]:
-        fila_asistencias.append("-")
-
-    # La inscripcion y su fila se agregan en la misma posicion.
+    # Sin un registro de asistencia, el inscripto figura como pendiente.
     grupo["inscriptos"].append([legajo, "Activo"])
-    grupo["asistencias"].append(fila_asistencias)
 
     print("Estudiante inscripto correctamente.")
 
@@ -304,7 +297,7 @@ def menu_inscripciones(ruta_padron, grupo):
 # =========================================
 
 
-def registrar_asistencia(ruta_padron, grupo):
+def registrar_asistencia(ruta_padron, grupo, materia, nombre_grupo):
 
     if len(grupo["sesiones"]) == 0:
         print("No hay sesiones registradas.")
@@ -319,6 +312,8 @@ def registrar_asistencia(ruta_padron, grupo):
     if posicion_sesion == None:
         return
 
+    sesion = grupo["sesiones"][posicion_sesion][0]
+    estados = Archivos.leer_asistencias(materia, nombre_grupo, sesion=sesion)
     mostrar_estados_asistencia()
 
     print("\n===== REGISTRO DE ASISTENCIA =====")
@@ -330,9 +325,8 @@ def registrar_asistencia(ruta_padron, grupo):
         # Solo se registran pendientes de inscriptos activos.
         if grupo["inscriptos"][i][1] == "Activo":
 
-            if grupo["asistencias"][i][posicion_sesion] == "-":
-
-                legajo = grupo["inscriptos"][i][0]
+            legajo = grupo["inscriptos"][i][0]
+            if estados.get(legajo, "-") == "-":
                 nombre = buscar_estudiante(ruta_padron, legajo)
 
                 print("\nLegajo:", legajo)
@@ -345,7 +339,7 @@ def registrar_asistencia(ruta_padron, grupo):
                     print("Registro cancelado. Las asistencias ya cargadas se conservan.")
                     return
 
-                grupo["asistencias"][i][posicion_sesion] = estado
+                Archivos.guardar_asistencia(materia, nombre_grupo, legajo, sesion, estado)
                 cantidad_registradas += 1
 
     if cantidad_registradas > 0:
@@ -355,7 +349,7 @@ def registrar_asistencia(ruta_padron, grupo):
         print("\nNo hay asistencias pendientes de inscriptos activos para esta sesión.")
 
 
-def modificar_asistencia(ruta_padron, grupo):
+def modificar_asistencia(ruta_padron, grupo, materia, nombre_grupo):
 
     if len(grupo["sesiones"]) == 0:
         print("No hay sesiones registradas.")
@@ -390,7 +384,9 @@ def modificar_asistencia(ruta_padron, grupo):
                 return
 
             nombre = buscar_estudiante(ruta_padron, legajo)
-            estado_actual = grupo["asistencias"][posicion_estudiante][posicion_sesion]
+            sesion = grupo["sesiones"][posicion_sesion][0]
+            estados = Archivos.leer_asistencias(materia, nombre_grupo, legajo=legajo, sesion=sesion)
+            estado_actual = estados.get(sesion, "-")
 
             print("\nEstudiante:", nombre)
             print("Estado actual:", estado_actual)
@@ -411,7 +407,7 @@ def modificar_asistencia(ruta_padron, grupo):
                 return
 
             # Se modifica solamente la asistencia seleccionada.
-            grupo["asistencias"][posicion_estudiante][posicion_sesion] = nuevo_estado
+            Archivos.guardar_asistencia(materia, nombre_grupo, legajo, sesion, nuevo_estado)
 
             print("Asistencia modificada correctamente.")
 
@@ -419,7 +415,7 @@ def modificar_asistencia(ruta_padron, grupo):
         continuar = validar_si_no(continuar)
 
 
-def mostrar_planilla_general(ruta_padron, grupo):
+def mostrar_planilla_general(ruta_padron, grupo, materia, nombre_grupo):
 
     # Para mostrar la planilla deben existir inscriptos y sesiones cargadas.
     if len(grupo["inscriptos"]) == 0:
@@ -452,9 +448,9 @@ def mostrar_planilla_general(ruta_padron, grupo):
 
         print(f"{legajo:<10}{nombre:<25}{estado_inscripcion:<12}", end="")
 
-        for j in range(len(grupo["sesiones"])):
-
-            estado = grupo["asistencias"][i][j]
+        estados = Archivos.leer_asistencias(materia, nombre_grupo, legajo=legajo)
+        for sesion in grupo["sesiones"]:
+            estado = estados.get(sesion[0], "-")
             print(f"{estado:^8}", end="")
 
         print()
@@ -462,7 +458,7 @@ def mostrar_planilla_general(ruta_padron, grupo):
     print("\n- : asistencia sin registrar.")
 
 
-def menu_asistencias(ruta_padron, grupo):
+def menu_asistencias(ruta_padron, grupo, materia, nombre_grupo):
 
     # Menu principal del modulo de asistencias.
     opcion = ""
@@ -479,15 +475,15 @@ def menu_asistencias(ruta_padron, grupo):
 
         if opcion == "1":
 
-            registrar_asistencia(ruta_padron, grupo)
+            registrar_asistencia(ruta_padron, grupo, materia, nombre_grupo)
 
         elif opcion == "2":
 
-            modificar_asistencia(ruta_padron, grupo)
+            modificar_asistencia(ruta_padron, grupo, materia, nombre_grupo)
 
         elif opcion == "3":
 
-            mostrar_planilla_general(ruta_padron, grupo)
+            mostrar_planilla_general(ruta_padron, grupo, materia, nombre_grupo)
 
         elif opcion == "0":
 

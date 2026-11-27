@@ -338,10 +338,9 @@ def crear_grupo(cursadas, configuracion, materia=None):
 
     grupo = {
         "institucion": institucion,
-            "horarios": horarios,
-            "inscriptos": [],
-            "sesiones": [],
-            "asistencias": []
+        "horarios": horarios,
+        "inscriptos": [],
+        "sesiones": []
     }
     registro = {"tipo": "grupo", "materia": materia, "nombre": nombre, "datos": grupo}
     guardado = Archivos.agregar_registro(registro)
@@ -470,51 +469,9 @@ def cambiar_institucion_predeterminada(configuracion):
 # =========================================
 
 
-def agregar_columna_asistencia(asistencias):
-    # Agrega una columna nueva (la nueva sesion) a cada fila existente.
-    for i in range(len(asistencias)):
-        asistencias[i].append("-")
-
-
-def agregar_fila_asistencia(asistencias, cantidad_sesiones):
-    # Agrega una fila nueva (nuevo estudiante),
-    # con una columna por cada sesion existente.
-
-    if cantidad_sesiones < 0 or cantidad_sesiones != int(cantidad_sesiones):
-        print("La cantidad de sesiones debe ser un entero mayor o igual a cero.")
-        return False
-
-    fila_nueva = []
-
-    for i in range(cantidad_sesiones):
-        fila_nueva.append("-")
-
-    asistencias.append(fila_nueva)
-    return True
-
-
-def verificar_dimensiones_matriz(asistencias, sesiones):
-
-    correctas = True
-
-    for fila in asistencias:
-        if len(fila) != len(sesiones):
-            correctas = False
-
-    if correctas == False:
-        print("Aviso: una fila de asistencias tiene dimensiones incorrectas.")
-
-    return correctas
-
-def crear_sesion(sesiones, asistencias):
+def crear_sesion(sesiones):
 
     print("\n--- Crear nueva sesion ---")
-
-    # No se agrega una sesion si la matriz ya esta desincronizada: hacerlo
-    # aumentaria el error y podria asociar asistencias con otra sesion.
-    if not verificar_dimensiones_matriz(asistencias, sesiones):
-        print("No se puede crear la sesion hasta corregir la matriz de asistencias.")
-        return asistencias, sesiones
 
     numero_sesion = input("Ingrese el numero de sesion: ")
 
@@ -542,15 +499,6 @@ def crear_sesion(sesiones, asistencias):
     nueva_sesion = [numero_sesion, fecha, tema]
 
     sesiones.append(nueva_sesion)
-
-    # Cada sesion nueva agrega una columna a la matriz de asistencias
-    agregar_columna_asistencia(asistencias)
-
-    # Chequeo de que la matriz sigue teniendo las dimensiones correctas
-    if not verificar_dimensiones_matriz(asistencias, sesiones):
-        print("Error: la matriz de asistencias tiene dimensiones incorrectas.")
-
-    return asistencias, sesiones
 
 
 def listar_sesiones(sesiones):
@@ -590,7 +538,7 @@ def buscar_sesion(sesiones, numero_sesion):
     return None
 
 
-def menu_sesiones(sesiones, asistencias):
+def menu_sesiones(sesiones):
 
     opcion = -1
 
@@ -608,7 +556,7 @@ def menu_sesiones(sesiones, asistencias):
         opcion = leer_opcion("Seleccione una opcion: ", 0, 3)
 
         if opcion == 1:
-            asistencias,sesiones = crear_sesion(sesiones, asistencias)
+            crear_sesion(sesiones)
 
         elif opcion == 2:
             listar_sesiones(sesiones)
@@ -636,7 +584,7 @@ def menu_sesiones(sesiones, asistencias):
         else:
             print("Opcion invalida. Intentelo de nuevo")
 
-    return sesiones, asistencias
+    return sesiones
 
 
 # =========================================
@@ -705,7 +653,7 @@ def menu_materias_grupos(cursadas, configuracion):
 
                 if nombre_grupo != None:
                     grupo = Archivos.obtener_grupo(materia, nombre_grupo)
-                    menu_sesiones(grupo["sesiones"], grupo["asistencias"])
+                    menu_sesiones(grupo["sesiones"])
                     guardado = Archivos.guardar_grupo(materia, nombre_grupo, grupo)
                     if guardado == True:
                         print("Cantidad de sesiones:", contar_sesiones_recursivo(grupo["sesiones"]))
