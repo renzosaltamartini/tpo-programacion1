@@ -1,15 +1,8 @@
+import Archivos
 import Estudiantes
 
 
-def contar_estado(lista, tipo):
-    contador = 0
-    for i in lista:
-        if tipo == i:
-            contador += 1
-    return contador
-
-
-def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def consultar_estudiante(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo):
 
     if len(matriz_estudiantes) == 0:
         print("No hay alumnos cargados")
@@ -35,7 +28,6 @@ def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias
             except ValueError:
                 print("Entrada inválida. Debe ingresar un número entero.")
 
-        # Los alumnos del grupo y las filas de asistencia siguen el orden de inscripción.
         for posicion_inscripto, estudiante in enumerate(matriz_estudiantes):
             if str(legajo) == str(estudiante[0]):
                 break
@@ -49,25 +41,27 @@ def consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias
     print("===== DATOS DEL ESTUDIANTE =====")
     print(f"Legajo: {matriz_estudiantes[posicion_inscripto][0]}\nNombre: {matriz_estudiantes[posicion_inscripto][1]}\nEstado: {estado_alumno}")
 
-    for i in range(len(matriz_sesiones)):
-        print(f"Sesion: {matriz_sesiones[i][0]}\nTema: {matriz_sesiones[i][2]}")
+    legajo = matriz_estudiantes[posicion_inscripto][0]
+    estados = Archivos.leer_asistencias(materia, nombre_grupo, legajo=legajo)
+
+    for sesion in matriz_sesiones:
+        print(f"Sesion: {sesion[0]}\nTema: {sesion[2]}")
+        estado = estados.get(sesion[0], "-")
         asistencia = "Nula"
 
-        if i < len(matriz_asistencias[posicion_inscripto]):
-            estado_asist = matriz_asistencias[posicion_inscripto][i]
-            if estado_asist == "A":
-                asistencia = "Ausente"
-            elif estado_asist == "P":
-                asistencia = "Presente"
-            elif estado_asist == "J":
-                asistencia = "Justificado"
-            elif estado_asist == "T":
-                asistencia = "Tarde"
+        if estado == "A":
+            asistencia = "Ausente"
+        elif estado == "P":
+            asistencia = "Presente"
+        elif estado == "J":
+            asistencia = "Justificado"
+        elif estado == "T":
+            asistencia = "Tarde"
 
         print(f"Asistencia: {asistencia}")
 
 
-def consultar_sesion(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def consultar_sesion(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo):
 
     if len(matriz_sesiones) == 0:
         print("No hay sesiones cargadas")
@@ -93,28 +87,14 @@ def consultar_sesion(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
         print(f"La sesion {sesion}, no existe")
         return
 
+    estados = Archivos.leer_asistencias(materia, nombre_grupo, sesion=sesion)
     print(f"==== SESION: {sesion} ====")
-    for posicion_inscripto in range(len(matriz_estudiantes)):
-        estado = "-"
-        if posicion_sesion < len(matriz_asistencias[posicion_inscripto]):
-            estado = matriz_asistencias[posicion_inscripto][posicion_sesion]
-        print(f"Nombre: {matriz_estudiantes[posicion_inscripto][1]}\nAsistencia: {estado}")
+    for estudiante in matriz_estudiantes:
+        estado = estados.get(estudiante[0], "-")
+        print(f"Nombre: {estudiante[1]}\nAsistencia: {estado}")
 
 
-def calcular_porcentaje(matriz_asistencias, i):
-
-    if len(matriz_asistencias[i]) == 0:
-        print("No hay clases cargadas")
-        return 0
-
-    presentes = contar_estado(matriz_asistencias[i], "P")
-    total_clases = len(matriz_asistencias[i])
-
-    pct = presentes * 100 / total_clases
-    return pct
-
-
-def mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_asistencias):
+def mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo):
 
     alumnos_en_riesgo = False
 
@@ -132,18 +112,28 @@ def mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_asistencias):
         except ValueError:
             print("Debe ingresar un número decimal válido.")
 
-    for posicion_inscripto in range(len(matriz_estudiantes)):
-        porcentaje = calcular_porcentaje(matriz_asistencias, posicion_inscripto)
+    total_clases = len(matriz_sesiones)
+    if total_clases == 0:
+        print("No hay clases cargadas")
+        return
+
+    for estudiante in matriz_estudiantes:
+        estados = Archivos.leer_asistencias(materia, nombre_grupo, legajo=estudiante[0])
+        presentes = 0
+        for sesion in matriz_sesiones:
+            if estados.get(sesion[0], "-") == "P":
+                presentes += 1
+        porcentaje = presentes * 100 / total_clases
         if porcentaje < pct_de_asistencia:
             alumnos_en_riesgo = True
             print("==== ALUMNO DEBAJO DEL LIMITE ====")
-            print(f"Nombre: {matriz_estudiantes[posicion_inscripto][1]}\nLegajo: {matriz_estudiantes[posicion_inscripto][0]}\nPorcentaje: {porcentaje:.2f}%")
+            print(f"Nombre: {estudiante[1]}\nLegajo: {estudiante[0]}\nPorcentaje: {porcentaje:.2f}%")
 
     if not alumnos_en_riesgo:
         print(f"No hay alumnos con menos del {pct_de_asistencia}%")
 
 
-def menu_consultas(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
+def menu_consultas(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo):
     opcion = -1
     while opcion != 0:
         print("\n==== MENU DE CONSULTAS ====")
@@ -163,10 +153,10 @@ def menu_consultas(matriz_estudiantes, matriz_sesiones, matriz_asistencias):
             continue
 
         if opcion == 1:
-            consultar_estudiante(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            consultar_estudiante(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo)
         elif opcion == 2:
-            consultar_sesion(matriz_estudiantes, matriz_sesiones, matriz_asistencias)
+            consultar_sesion(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo)
         elif opcion == 3:
-            mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_asistencias)
+            mostrar_estudiantes_riesgo(matriz_estudiantes, matriz_sesiones, materia, nombre_grupo)
         elif opcion == 0:
             print("Volviendo al menu principal...")

@@ -295,8 +295,46 @@ def obtener_grupo(materia, nombre, ruta_cursadas=CURSADAS):
     return grupo
 
 
+def leer_asistencias(materia, nombre, legajo=None, sesion=None,
+                     ruta_cursadas=CURSADAS):
+
+    archivo = None
+    estados = {}
+
+    try:
+        archivo = open(ruta_cursadas, "r", encoding="utf-8")
+        registro = leer_registro(archivo)
+
+        while registro != None:
+            if (registro["tipo"] == "asistencia"
+                    and registro["materia"] == materia
+                    and registro["nombre"] == nombre):
+                if legajo != None:
+                    if registro["legajo"] == legajo and (sesion == None or registro["sesion"] == sesion):
+                        estados[registro["sesion"]] = registro["estado"]
+                elif registro["sesion"] == sesion:
+                    estados[registro["legajo"]] = registro["estado"]
+
+            registro = leer_registro(archivo)
+
+    finally:
+        cerrar_archivo(archivo)
+
+    return estados
+
+
+def guardar_asistencia(materia, nombre, legajo, sesion, estado,
+                       ruta_cursadas=CURSADAS):
+
+    registro = {"tipo": "asistencia", "materia": materia, "nombre": nombre,
+                "legajo": legajo, "sesion": sesion, "estado": estado}
+    if actualizar(materia, nombre, {"estado": estado}, ruta_cursadas,
+                  asistencia=registro) == False:
+        raise OSError("No se pudo guardar la asistencia.")
+
+
 def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
-               ruta_cursadas=CURSADAS):
+               ruta_cursadas=CURSADAS, asistencia=None, convertir=False):
 
     entrada = None
     salida = None
@@ -306,7 +344,7 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
     temporal = ruta_cursadas + ".tmp"
 
     try:
-        if cambios == None or len(cambios) == 0:
+        if convertir == False and (cambios == None or len(cambios) == 0):
             raise ValueError("No se indicaron cambios para guardar.")
 
         entrada = open(ruta_cursadas, "r", encoding="utf-8")
@@ -318,14 +356,45 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
         while registro != None:
             coincide = False
 
-            if materia_actual == None:
+            if convertir == True:
+                # Cada estado registrado de la matriz anterior pasa a su propia linea.
+                if registro["tipo"] == "grupo" and "asistencias" in registro["datos"]:
+                    grupo = registro["datos"]
+                    matriz = grupo.pop("asistencias")
+                    salida.write(linea_json(registro))
+
+                    for i in range(len(grupo["inscriptos"])):
+                        legajo = grupo["inscriptos"][i][0]
+                        for j in range(len(grupo["sesiones"])):
+                            estado = matriz[i][j]
+                            if estado != "-":
+                                nueva = {"tipo": "asistencia",
+                                         "materia": registro["materia"],
+                                         "nombre": registro["nombre"],
+                                         "legajo": legajo,
+                                         "sesion": grupo["sesiones"][j][0],
+                                         "estado": estado}
+                                salida.write(linea_json(nueva))
+
+                    del matriz
+                    encontrado = True
+                    registro = leer_registro(entrada)
+                    continue
+            elif asistencia != None:
+                coincide = (registro["tipo"] == "asistencia"
+                            and registro["materia"] == materia_actual
+                            and registro["nombre"] == nombre_actual
+                            and registro["legajo"] == asistencia["legajo"]
+                            and registro["sesion"] == asistencia["sesion"])
+            elif materia_actual == None:
                 coincide = registro["tipo"] == "configuracion"
             elif nombre_actual == None:
                 coincide = registro.get("materia") == materia_actual
             else:
-                coincide = (registro["tipo"] == "grupo"
-                            and registro.get("materia") == materia_actual
-                            and registro.get("nombre") == nombre_actual)
+                coincide = (registro.get("materia") == materia_actual
+                            and registro.get("nombre") == nombre_actual
+                            and (registro["tipo"] == "grupo"
+                                 or (registro["tipo"] == "asistencia" and "nombre" in cambios)))
 
             if coincide == True:
                 for clave in cambios:
@@ -334,6 +403,10 @@ def actualizar(materia_actual=None, nombre_actual=None, cambios=None,
 
             salida.write(linea_json(registro))
             registro = leer_registro(entrada)
+
+        if asistencia != None and encontrado == False:
+            salida.write(linea_json(asistencia))
+            encontrado = True
 
         entrada.close()
         entrada = None
